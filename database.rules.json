@@ -1,0 +1,69 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "profiles": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['displayName','updatedAt']) && newData.child('displayName').isString() && newData.child('displayName').val().length >= 2 && newData.child('displayName').val().length <= 24 && newData.child('updatedAt').isNumber()"
+      }
+    },
+    "roomCodes": {
+      ".read": false,
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && ((!data.exists() && newData.hasChildren(['roomId']) && newData.child('roomId').isString()) || (data.exists() && !newData.exists() && root.child('rooms').child(data.child('roomId').val()).child('meta').child('hostId').val() === auth.uid))"
+      }
+    },
+    "rooms": {
+      "$roomId": {
+        "meta": {
+          ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+          ".write": "auth != null",
+          ".validate": "newData.hasChildren(['code','hostId','status','createdAt','updatedAt','packId']) && (newData.child('status').val() === 'lobby' || newData.child('status').val() === 'playing' || newData.child('status').val() === 'finished') && (!data.exists() ? newData.child('hostId').val() === auth.uid : (newData.child('hostId').val() === data.child('hostId').val() || newData.child('hostId').val() === auth.uid))"
+        },
+        "members": {
+          ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+          "$uid": {
+            ".write": "auth != null",
+            ".validate": "!newData.exists() || (newData.hasChildren(['displayName','joinedAt','lastSeenAt']) && newData.child('uid').val() === $uid && newData.child('displayName').isString() && newData.child('displayName').val().length >= 2)"
+          }
+        },
+        "presence": {
+          ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        },
+        "public": {
+          ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+          "revealed": {
+            "$pos": {
+              ".validate": "!newData.exists() || (newData.isString() &&(newData.val() === 'red' || newData.val() === 'blue' || newData.val() === 'neutral' || newData.val() === 'assassin') &&(!data.exists()) &&newData.val() === root.child('rooms').child($roomId).child('secret').child(newData.parent().parent().child('matchId').val()).child('roles').child($pos).val())"
+            }
+          }
+        },
+        "secret": {
+          "$matchId": {
+            ".read": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).child('role').val() === 'captain' || (root.child('rooms').child($roomId).child('meta').child('status').val() === 'finished' && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()))",
+            ".write": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).child('role').val() === 'captain' && !data.exists()",
+            ".validate": "newData.child('matchId').val() === $matchId && newData.hasChildren(['matchId','roles','captainRed','captainBlue']) && newData.child('roles/0').exists() && newData.child('roles/1').exists() && newData.child('roles/2').exists() && newData.child('roles/3').exists() && newData.child('roles/4').exists() && newData.child('roles/5').exists() && newData.child('roles/6').exists() && newData.child('roles/7').exists() && newData.child('roles/8').exists() && newData.child('roles/9').exists() && newData.child('roles/10').exists() && newData.child('roles/11').exists() && newData.child('roles/12').exists() && newData.child('roles/13').exists() && newData.child('roles/14').exists() && newData.child('roles/15').exists() && newData.child('roles/16').exists() && newData.child('roles/17').exists() && newData.child('roles/18').exists() && newData.child('roles/19').exists() && ((newData.child('roles/0').val() === 'assassin' ? 1 : 0) + (newData.child('roles/1').val() === 'assassin' ? 1 : 0) + (newData.child('roles/2').val() === 'assassin' ? 1 : 0) + (newData.child('roles/3').val() === 'assassin' ? 1 : 0) + (newData.child('roles/4').val() === 'assassin' ? 1 : 0) + (newData.child('roles/5').val() === 'assassin' ? 1 : 0) + (newData.child('roles/6').val() === 'assassin' ? 1 : 0) + (newData.child('roles/7').val() === 'assassin' ? 1 : 0) + (newData.child('roles/8').val() === 'assassin' ? 1 : 0) + (newData.child('roles/9').val() === 'assassin' ? 1 : 0) + (newData.child('roles/10').val() === 'assassin' ? 1 : 0) + (newData.child('roles/11').val() === 'assassin' ? 1 : 0) + (newData.child('roles/12').val() === 'assassin' ? 1 : 0) + (newData.child('roles/13').val() === 'assassin' ? 1 : 0) + (newData.child('roles/14').val() === 'assassin' ? 1 : 0) + (newData.child('roles/15').val() === 'assassin' ? 1 : 0) + (newData.child('roles/16').val() === 'assassin' ? 1 : 0) + (newData.child('roles/17').val() === 'assassin' ? 1 : 0) + (newData.child('roles/18').val() === 'assassin' ? 1 : 0) + (newData.child('roles/19').val() === 'assassin' ? 1 : 0)) === 1 && ((newData.child('roles/0').val() === 'neutral' ? 1 : 0) + (newData.child('roles/1').val() === 'neutral' ? 1 : 0) + (newData.child('roles/2').val() === 'neutral' ? 1 : 0) + (newData.child('roles/3').val() === 'neutral' ? 1 : 0) + (newData.child('roles/4').val() === 'neutral' ? 1 : 0) + (newData.child('roles/5').val() === 'neutral' ? 1 : 0) + (newData.child('roles/6').val() === 'neutral' ? 1 : 0) + (newData.child('roles/7').val() === 'neutral' ? 1 : 0) + (newData.child('roles/8').val() === 'neutral' ? 1 : 0) + (newData.child('roles/9').val() === 'neutral' ? 1 : 0) + (newData.child('roles/10').val() === 'neutral' ? 1 : 0) + (newData.child('roles/11').val() === 'neutral' ? 1 : 0) + (newData.child('roles/12').val() === 'neutral' ? 1 : 0) + (newData.child('roles/13').val() === 'neutral' ? 1 : 0) + (newData.child('roles/14').val() === 'neutral' ? 1 : 0) + (newData.child('roles/15').val() === 'neutral' ? 1 : 0) + (newData.child('roles/16').val() === 'neutral' ? 1 : 0) + (newData.child('roles/17').val() === 'neutral' ? 1 : 0) + (newData.child('roles/18').val() === 'neutral' ? 1 : 0) + (newData.child('roles/19').val() === 'neutral' ? 1 : 0)) === 4 && ((((newData.child('roles/0').val() === 'red' ? 1 : 0) + (newData.child('roles/1').val() === 'red' ? 1 : 0) + (newData.child('roles/2').val() === 'red' ? 1 : 0) + (newData.child('roles/3').val() === 'red' ? 1 : 0) + (newData.child('roles/4').val() === 'red' ? 1 : 0) + (newData.child('roles/5').val() === 'red' ? 1 : 0) + (newData.child('roles/6').val() === 'red' ? 1 : 0) + (newData.child('roles/7').val() === 'red' ? 1 : 0) + (newData.child('roles/8').val() === 'red' ? 1 : 0) + (newData.child('roles/9').val() === 'red' ? 1 : 0) + (newData.child('roles/10').val() === 'red' ? 1 : 0) + (newData.child('roles/11').val() === 'red' ? 1 : 0) + (newData.child('roles/12').val() === 'red' ? 1 : 0) + (newData.child('roles/13').val() === 'red' ? 1 : 0) + (newData.child('roles/14').val() === 'red' ? 1 : 0) + (newData.child('roles/15').val() === 'red' ? 1 : 0) + (newData.child('roles/16').val() === 'red' ? 1 : 0) + (newData.child('roles/17').val() === 'red' ? 1 : 0) + (newData.child('roles/18').val() === 'red' ? 1 : 0) + (newData.child('roles/19').val() === 'red' ? 1 : 0)) === 8 && ((newData.child('roles/0').val() === 'blue' ? 1 : 0) + (newData.child('roles/1').val() === 'blue' ? 1 : 0) + (newData.child('roles/2').val() === 'blue' ? 1 : 0) + (newData.child('roles/3').val() === 'blue' ? 1 : 0) + (newData.child('roles/4').val() === 'blue' ? 1 : 0) + (newData.child('roles/5').val() === 'blue' ? 1 : 0) + (newData.child('roles/6').val() === 'blue' ? 1 : 0) + (newData.child('roles/7').val() === 'blue' ? 1 : 0) + (newData.child('roles/8').val() === 'blue' ? 1 : 0) + (newData.child('roles/9').val() === 'blue' ? 1 : 0) + (newData.child('roles/10').val() === 'blue' ? 1 : 0) + (newData.child('roles/11').val() === 'blue' ? 1 : 0) + (newData.child('roles/12').val() === 'blue' ? 1 : 0) + (newData.child('roles/13').val() === 'blue' ? 1 : 0) + (newData.child('roles/14').val() === 'blue' ? 1 : 0) + (newData.child('roles/15').val() === 'blue' ? 1 : 0) + (newData.child('roles/16').val() === 'blue' ? 1 : 0) + (newData.child('roles/17').val() === 'blue' ? 1 : 0) + (newData.child('roles/18').val() === 'blue' ? 1 : 0) + (newData.child('roles/19').val() === 'blue' ? 1 : 0)) === 7) || (((newData.child('roles/0').val() === 'red' ? 1 : 0) + (newData.child('roles/1').val() === 'red' ? 1 : 0) + (newData.child('roles/2').val() === 'red' ? 1 : 0) + (newData.child('roles/3').val() === 'red' ? 1 : 0) + (newData.child('roles/4').val() === 'red' ? 1 : 0) + (newData.child('roles/5').val() === 'red' ? 1 : 0) + (newData.child('roles/6').val() === 'red' ? 1 : 0) + (newData.child('roles/7').val() === 'red' ? 1 : 0) + (newData.child('roles/8').val() === 'red' ? 1 : 0) + (newData.child('roles/9').val() === 'red' ? 1 : 0) + (newData.child('roles/10').val() === 'red' ? 1 : 0) + (newData.child('roles/11').val() === 'red' ? 1 : 0) + (newData.child('roles/12').val() === 'red' ? 1 : 0) + (newData.child('roles/13').val() === 'red' ? 1 : 0) + (newData.child('roles/14').val() === 'red' ? 1 : 0) + (newData.child('roles/15').val() === 'red' ? 1 : 0) + (newData.child('roles/16').val() === 'red' ? 1 : 0) + (newData.child('roles/17').val() === 'red' ? 1 : 0) + (newData.child('roles/18').val() === 'red' ? 1 : 0) + (newData.child('roles/19').val() === 'red' ? 1 : 0)) === 7 && ((newData.child('roles/0').val() === 'blue' ? 1 : 0) + (newData.child('roles/1').val() === 'blue' ? 1 : 0) + (newData.child('roles/2').val() === 'blue' ? 1 : 0) + (newData.child('roles/3').val() === 'blue' ? 1 : 0) + (newData.child('roles/4').val() === 'blue' ? 1 : 0) + (newData.child('roles/5').val() === 'blue' ? 1 : 0) + (newData.child('roles/6').val() === 'blue' ? 1 : 0) + (newData.child('roles/7').val() === 'blue' ? 1 : 0) + (newData.child('roles/8').val() === 'blue' ? 1 : 0) + (newData.child('roles/9').val() === 'blue' ? 1 : 0) + (newData.child('roles/10').val() === 'blue' ? 1 : 0) + (newData.child('roles/11').val() === 'blue' ? 1 : 0) + (newData.child('roles/12').val() === 'blue' ? 1 : 0) + (newData.child('roles/13').val() === 'blue' ? 1 : 0) + (newData.child('roles/14').val() === 'blue' ? 1 : 0) + (newData.child('roles/15').val() === 'blue' ? 1 : 0) + (newData.child('roles/16').val() === 'blue' ? 1 : 0) + (newData.child('roles/17').val() === 'blue' ? 1 : 0) + (newData.child('roles/18').val() === 'blue' ? 1 : 0) + (newData.child('roles/19').val() === 'blue' ? 1 : 0)) === 8))"
+          }
+        },
+        "events": {
+          ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+          "$eventId": {
+            ".write": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists() && !data.exists()",
+            ".validate": "newData.hasChildren(['id','at','type','actorUid','payload'])"
+          }
+        },
+        "dealRequests": {
+          ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+          ".write": "auth != null && (root.child('rooms').child($roomId).child('meta').child('hostId').val() === auth.uid || root.child('rooms').child($roomId).child('members').child(auth.uid).child('role').val() === 'captain')"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "cardCount": 100,
+  "visualReview": "All 25 source sheets and final 100-card contact sheet reviewed",
+  "thumbnailReviewSize": [96, 96],
+  "semanticOrVisualDuplicatesObserved": 0,
+  "exactByteDuplicates": 0,
+  "allFilesDecode": true,
+  "allDimensions": [512, 512],
+  "allFormats": "WEBP",
+  "allManifestPathsExist": true,
+  "remainingMagentaSeparators": false,
+  "normalization": "Proportional downsampling and square padding; no stretching",
+  "physicalDeviceTesting": false
+}

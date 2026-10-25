@@ -1,0 +1,411 @@
+{
+  "id": "hidden-mvp",
+  "name": "Hidden Pictures",
+  "nameRu": "Тайные образы",
+  "width": 512,
+  "height": 512,
+  "format": "webp",
+  "cover": "cards/card_001.webp",
+  "cards": [
+    {
+      "id": "card_001",
+      "image": "cards/card_001.webp"
+    },
+    {
+      "id": "card_002",
+      "image": "cards/card_002.webp"
+    },
+    {
+      "id": "card_003",
+      "image": "cards/card_003.webp"
+    },
+    {
+      "id": "card_004",
+      "image": "cards/card_004.webp"
+    },
+    {
+      "id": "card_005",
+      "image": "cards/card_005.webp"
+    },
+    {
+      "id": "card_006",
+      "image": "cards/card_006.webp"
+    },
+    {
+      "id": "card_007",
+      "image": "cards/card_007.webp"
+    },
+    {
+      "id": "card_008",
+      "image": "cards/card_008.webp"
+    },
+    {
+      "id": "card_009",
+      "image": "cards/card_009.webp"
+    },
+    {
+      "id": "card_010",
+      "image": "cards/card_010.webp"
+    },
+    {
+      "id": "card_011",
+      "image": "cards/card_011.webp"
+    },
+    {
+      "id": "card_012",
+      "image": "cards/card_012.webp"
+    },
+    {
+      "id": "card_013",
+      "image": "cards/card_013.webp"
+    },
+    {
+      "id": "card_014",
+      "image": "cards/card_014.webp"
+    },
+    {
+      "id": "card_015",
+      "image": "cards/card_015.webp"
+    },
+    {
+      "id": "card_016",
+      "image": "cards/card_016.webp"
+    },
+    {
+      "id": "card_017",
+      "image": "cards/card_017.webp"
+    },
+    {
+      "id": "card_018",
+      "image": "cards/card_018.webp"
+    },
+    {
+      "id": "card_019",
+      "image": "cards/card_019.webp"
+    },
+    {
+      "id": "card_020",
+      "image": "cards/card_020.webp"
+    },
+    {
+      "id": "card_021",
+      "image": "cards/card_021.webp"
+    },
+    {
+      "id": "card_022",
+      "image": "cards/card_022.webp"
+    },
+    {
+      "id": "card_023",
+      "image": "cards/card_023.webp"
+    },
+    {
+      "id": "card_024",
+      "image": "cards/card_024.webp"
+    },
+    {
+      "id": "card_025",
+      "image": "cards/card_025.webp"
+    },
+    {
+      "id": "card_026",
+      "image": "cards/card_026.webp"
+    },
+    {
+      "id": "card_027",
+      "image": "cards/card_027.webp"
+    },
+    {
+      "id": "card_028",
+      "image": "cards/card_028.webp"
+    },
+    {
+      "id": "card_029",
+      "image": "cards/card_029.webp"
+    },
+    {
+      "id": "card_030",
+      "image": "cards/card_030.webp"
+    },
+    {
+      "id": "card_031",
+      "image": "cards/card_031.webp"
+    },
+    {
+      "id": "card_032",
+      "image": "cards/card_032.webp"
+    },
+    {
+      "id": "card_033",
+      "image": "cards/card_033.webp"
+    },
+    {
+      "id": "card_034",
+      "image": "cards/card_034.webp"
+    },
+    {
+      "id": "card_035",
+      "image": "cards/card_035.webp"
+    },
+    {
+      "id": "card_036",
+      "image": "cards/card_036.webp"
+    },
+    {
+      "id": "card_037",
+      "image": "cards/card_037.webp"
+    },
+    {
+      "id": "card_038",
+      "image": "cards/card_038.webp"
+    },
+    {
+      "id": "card_039",
+      "image": "cards/card_039.webp"
+    },
+    {
+      "id": "card_040",
+      "image": "cards/card_040.webp"
+    },
+    {
+      "id": "card_041",
+      "image": "cards/card_041.webp"
+    },
+    {
+      "id": "card_042",
+      "image": "cards/card_042.webp"
+    },
+    {
+      "id": "card_043",
+      "image": "cards/card_043.webp"
+    },
+    {
+      "id": "card_044",
+      "image": "cards/card_044.webp"
+    },
+    {
+      "id": "card_045",
+      "image": "cards/card_045.webp"
+    },
+    {
+      "id": "card_046",
+      "image": "cards/card_046.webp"
+    },
+    {
+      "id": "card_047",
+      "image": "cards/card_047.webp"
+    },
+    {
+      "id": "card_048",
+      "image": "cards/card_048.webp"
+    },
+    {
+      "id": "card_049",
+      "image": "cards/card_049.webp"
+    },
+    {
+      "id": "card_050",
+      "image": "cards/card_050.webp"
+    },
+    {
+      "id": "card_051",
+      "image": "cards/card_051.webp"
+    },
+    {
+      "id": "card_052",
+      "image": "cards/card_052.webp"
+    },
+    {
+      "id": "card_053",
+      "image": "cards/card_053.webp"
+    },
+    {
+      "id": "card_054",
+      "image": "cards/card_054.webp"
+    },
+    {
+      "id": "card_055",
+      "image": "cards/card_055.webp"
+    },
+    {
+      "id": "card_056",
+      "image": "cards/card_056.webp"
+    },
+    {
+      "id": "card_057",
+      "image": "cards/card_057.webp"
+    },
+    {
+      "id": "card_058",
+      "image": "cards/card_058.webp"
+    },
+    {
+      "id": "card_059",
+      "image": "cards/card_059.webp"
+    },
+    {
+      "id": "card_060",
+      "image": "cards/card_060.webp"
+    },
+    {
+      "id": "card_061",
+      "image": "cards/card_061.webp"
+    },
+    {
+      "id": "card_062",
+      "image": "cards/card_062.webp"
+    },
+    {
+      "id": "card_063",
+      "image": "cards/card_063.webp"
+    },
+    {
+      "id": "card_064",
+      "image": "cards/card_064.webp"
+    },
+    {
+      "id": "card_065",
+      "image": "cards/card_065.webp"
+    },
+    {
+      "id": "card_066",
+      "image": "cards/card_066.webp"
+    },
+    {
+      "id": "card_067",
+      "image": "cards/card_067.webp"
+    },
+    {
+      "id": "card_068",
+      "image": "cards/card_068.webp"
+    },
+    {
+      "id": "card_069",
+      "image": "cards/card_069.webp"
+    },
+    {
+      "id": "card_070",
+      "image": "cards/card_070.webp"
+    },
+    {
+      "id": "card_071",
+      "image": "cards/card_071.webp"
+    },
+    {
+      "id": "card_072",
+      "image": "cards/card_072.webp"
+    },
+    {
+      "id": "card_073",
+      "image": "cards/card_073.webp"
+    },
+    {
+      "id": "card_074",
+      "image": "cards/card_074.webp"
+    },
+    {
+      "id": "card_075",
+      "image": "cards/card_075.webp"
+    },
+    {
+      "id": "card_076",
+      "image": "cards/card_076.webp"
+    },
+    {
+      "id": "card_077",
+      "image": "cards/card_077.webp"
+    },
+    {
+      "id": "card_078",
+      "image": "cards/card_078.webp"
+    },
+    {
+      "id": "card_079",
+      "image": "cards/card_079.webp"
+    },
+    {
+      "id": "card_080",
+      "image": "cards/card_080.webp"
+    },
+    {
+      "id": "card_081",
+      "image": "cards/card_081.webp"
+    },
+    {
+      "id": "card_082",
+      "image": "cards/card_082.webp"
+    },
+    {
+      "id": "card_083",
+      "image": "cards/card_083.webp"
+    },
+    {
+      "id": "card_084",
+      "image": "cards/card_084.webp"
+    },
+    {
+      "id": "card_085",
+      "image": "cards/card_085.webp"
+    },
+    {
+      "id": "card_086",
+      "image": "cards/card_086.webp"
+    },
+    {
+      "id": "card_087",
+      "image": "cards/card_087.webp"
+    },
+    {
+      "id": "card_088",
+      "image": "cards/card_088.webp"
+    },
+    {
+      "id": "card_089",
+      "image": "cards/card_089.webp"
+    },
+    {
+      "id": "card_090",
+      "image": "cards/card_090.webp"
+    },
+    {
+      "id": "card_091",
+      "image": "cards/card_091.webp"
+    },
+    {
+      "id": "card_092",
+      "image": "cards/card_092.webp"
+    },
+    {
+      "id": "card_093",
+      "image": "cards/card_093.webp"
+    },
+    {
+      "id": "card_094",
+      "image": "cards/card_094.webp"
+    },
+    {
+      "id": "card_095",
+      "image": "cards/card_095.webp"
+    },
+    {
+      "id": "card_096",
+      "image": "cards/card_096.webp"
+    },
+    {
+      "id": "card_097",
+      "image": "cards/card_097.webp"
+    },
+    {
+      "id": "card_098",
+      "image": "cards/card_098.webp"
+    },
+    {
+      "id": "card_099",
+      "image": "cards/card_099.webp"
+    },
+    {
+      "id": "card_100",
+      "image": "cards/card_100.webp"
+    }
+  ]
+}
