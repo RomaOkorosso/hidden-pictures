@@ -330,7 +330,8 @@ export async function captainDeal(roomId: string, uid: string): Promise<void> {
     captainRed: redCap.uid,
     captainBlue: blueCap.uid,
   };
-  const pub: PublicMatch = {
+  // Omit empty `revealed: {}` — RTDB drops empty maps anyway; normalizePublicMatch restores on read.
+  const pub: Omit<PublicMatch, "revealed"> = {
     matchId,
     version: 1,
     turnId: `${matchId}-t1`,
@@ -342,7 +343,6 @@ export async function captainDeal(roomId: string, uid: string): Promise<void> {
     clueCount: null,
     guessesLeft: null,
     guessesMade: 0,
-    revealed: {},
     remaining: initialRemaining(pending.startingTeam),
     winner: null,
     winReason: null,
