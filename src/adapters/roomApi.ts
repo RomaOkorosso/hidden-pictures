@@ -83,10 +83,15 @@ export async function createRoom(uid: string, displayName: string, packId = "hid
     lastSeenAt: nowMs(),
   };
 
-  await update(ref(db()), {
-    [`rooms/${roomId}/meta`]: meta,
-    [`rooms/${roomId}/members/${uid}`]: member,
-  });
+  // Write meta first so member validate can see lobby status via root (not only multipath newData).
+  try {
+    await set(ref(db(), `rooms/${roomId}/meta`), meta);
+    await set(ref(db(), `rooms/${roomId}/members/${uid}`), member);
+  } catch (error) {
+    await set(ref(db(), `roomCodes/${code}`), null).catch(() => undefined);
+    await set(ref(db(), `rooms/${roomId}`), null).catch(() => undefined);
+    throw error;
+  }
 
   return { roomId, code };
 }
@@ -98,19 +103,45 @@ export async function resolveCode(codeRaw: string): Promise<string> {
   return String((snap.val() as { roomId: string }).roomId);
 }
 
+function isPermissionDenied(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const code = "code" in error ? String((error as { code: unknown }).code) : "";
+  const message = "message" in error ? String((error as { message: unknown }).message) : "";
+  return code.includes("PERMISSION_DENIED") || message.includes("PERMISSION_DENIED");
+}
+
 export async function joinRoom(roomId: string, uid: string, displayName: string): Promise<void> {
   const name = normalizeDisplayName(displayName);
-  const metaSnap = await get(ref(db(), `rooms/${roomId}/meta`));
-  if (!metaSnap.exists()) throw new Error("ROOM_NOT_FOUND");
-  const meta = metaSnap.val() as RoomMeta;
+  let meta: RoomMeta;
+  try {
+    const metaSnap = await get(ref(db(), `rooms/${roomId}/meta`));
+    if (!metaSnap.exists()) throw new Error("ROOM_NOT_FOUND");
+    meta = metaSnap.val() as RoomMeta;
+  } catch (error) {
+    if (error instanceof Error && error.message === "ROOM_NOT_FOUND") throw error;
+    if (isPermissionDenied(error)) throw new Error("MATCH_LOCKED");
+    throw error;
+  }
   if (meta.status !== "lobby") {
-    const existing = await get(ref(db(), `rooms/${roomId}/members/${uid}`));
-    if (!existing.exists()) throw new Error("MATCH_LOCKED");
-    await update(ref(db(), `rooms/${roomId}/members/${uid}`), { lastSeenAt: nowMs() });
+    try {
+      const existing = await get(ref(db(), `rooms/${roomId}/members/${uid}`));
+      if (!existing.exists()) throw new Error("MATCH_LOCKED");
+      await update(ref(db(), `rooms/${roomId}/members/${uid}`), { lastSeenAt: nowMs() });
+    } catch (error) {
+      if (error instanceof Error && (error.message === "MATCH_LOCKED" || error.message === "ROOM_NOT_FOUND")) throw error;
+      if (isPermissionDenied(error)) throw new Error("MATCH_LOCKED");
+      throw error;
+    }
     return;
   }
-  const membersSnap = await get(ref(db(), `rooms/${roomId}/members`));
-  const members = membersSnap.val() as Record<string, Member> | null;
+  let members: Record<string, Member> | null = null;
+  try {
+    const membersSnap = await get(ref(db(), `rooms/${roomId}/members`));
+    members = membersSnap.val() as Record<string, Member> | null;
+  } catch (error) {
+    if (isPermissionDenied(error)) throw new Error("MATCH_LOCKED");
+    throw error;
+  }
   const count = members ? Object.keys(members).length : 0;
   if (!members?.[uid] && count >= GAME.maxPlayers) throw new Error("ROOM_FULL");
 
@@ -124,7 +155,12 @@ export async function joinRoom(roomId: string, uid: string, displayName: string)
   };
   member.displayName = name;
   member.lastSeenAt = nowMs();
-  await set(ref(db(), `rooms/${roomId}/members/${uid}`), member);
+  try {
+    await set(ref(db(), `rooms/${roomId}/members/${uid}`), member);
+  } catch (error) {
+    if (isPermissionDenied(error)) throw new Error("MATCH_LOCKED");
+    throw error;
+  }
 }
 
 export async function leaveRoom(roomId: string, uid: string): Promise<void> {

@@ -19,15 +19,15 @@
     "rooms": {
       "$roomId": {
         "meta": {
-          ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+          ".read": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || data.child('status').val() === 'lobby')",
           ".write": "auth != null",
           ".validate": "newData.hasChildren(['code','hostId','status','createdAt','updatedAt','packId']) && (newData.child('status').val() === 'lobby' || newData.child('status').val() === 'playing' || newData.child('status').val() === 'finished') && (!data.exists() ? newData.child('hostId').val() === auth.uid : (newData.child('hostId').val() === data.child('hostId').val() || newData.child('hostId').val() === auth.uid))"
         },
         "members": {
-          ".read": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
+          ".read": "auth != null && (root.child('rooms').child($roomId).child('members').child(auth.uid).exists() || root.child('rooms').child($roomId).child('meta').child('status').val() === 'lobby')",
           "$uid": {
             ".write": "auth != null",
-            ".validate": "!newData.exists() || (newData.hasChildren(['displayName','joinedAt','lastSeenAt']) && newData.child('uid').val() === $uid && newData.child('displayName').isString() && newData.child('displayName').val().length >= 2)"
+            ".validate": "!newData.exists() || (newData.hasChildren(['displayName','joinedAt','lastSeenAt']) && newData.child('uid').val() === $uid && newData.child('displayName').isString() && newData.child('displayName').val().length >= 2 && (data.exists() || (auth.uid === $uid && (root.child('rooms').child($roomId).child('meta').child('status').val() === 'lobby' || newData.parent().parent().child('meta').child('status').val() === 'lobby'))))"
           }
         },
         "presence": {

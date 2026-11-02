@@ -21,6 +21,9 @@ const member = (room = "$roomId") =>
 
 const isCaptain = `root.child('rooms').child($roomId).child('members').child(auth.uid).child('role').val() === 'captain'`;
 const isHost = `root.child('rooms').child($roomId).child('meta').child('hostId').val() === auth.uid`;
+const lobbyOpen = `root.child('rooms').child($roomId).child('meta').child('status').val() === 'lobby'`;
+// newData path sees sibling meta from the same multi-path create (root is still pre-write).
+const lobbyOpenAfterWrite = `newData.parent().parent().child('meta').child('status').val() === 'lobby'`;
 const auth = "auth != null";
 
 const rules = {
@@ -29,7 +32,7 @@ const rules = {
     ".write": false,
     profiles: {
       $uid: {
-        ".read": `${auth} && (auth.uid === $uid || root.child('rooms').child($roomId).exists() === false)`,
+        ".read": `${auth} && auth.uid === $uid`,
         // profiles readable by self; room peers read via members.displayName copy
         ".write": `${auth} && auth.uid === $uid`,
         ".validate":
@@ -47,17 +50,21 @@ const rules = {
     rooms: {
       $roomId: {
         meta: {
-          ".read": `${auth} && ${member()}`,
+          // Lobby meta is readable so joiners can resolve status before becoming members.
+          ".read": `${auth} && (${member()} || data.child('status').val() === 'lobby')`,
           ".write": `${auth}`,
           ".validate":
             "newData.hasChildren(['code','hostId','status','createdAt','updatedAt','packId']) && (newData.child('status').val() === 'lobby' || newData.child('status').val() === 'playing' || newData.child('status').val() === 'finished') && (!data.exists() ? newData.child('hostId').val() === auth.uid : (newData.child('hostId').val() === data.child('hostId').val() || newData.child('hostId').val() === auth.uid))",
         },
         members: {
-          ".read": `${auth} && ${member()}`,
+          // Lobby roster readable for capacity checks during join.
+          ".read": `${auth} && (${member()} || ${lobbyOpen})`,
           $uid: {
             ".write": `${auth}`,
+            // New seats only while lobby is open; updates/deletes keep existing host/claim flows.
+            // Allow create-room multipath (meta+member) via newData sibling meta, and join via root lobby.
             ".validate":
-              "!newData.exists() || (newData.hasChildren(['displayName','joinedAt','lastSeenAt']) && newData.child('uid').val() === $uid && newData.child('displayName').isString() && newData.child('displayName').val().length >= 2)",
+              `!newData.exists() || (newData.hasChildren(['displayName','joinedAt','lastSeenAt']) && newData.child('uid').val() === $uid && newData.child('displayName').isString() && newData.child('displayName').val().length >= 2 && (data.exists() || (auth.uid === $uid && (${lobbyOpen} || ${lobbyOpenAfterWrite}))))`,
           },
         },
         presence: {
@@ -109,9 +116,6 @@ const rules = {
     },
   },
 };
-
-// Fix broken profiles.read referencing $roomId — profiles only self-read
-(rules.rules.profiles as { $uid: { ".read": string } }).$uid[".read"] = `${auth} && auth.uid === $uid`;
 
 writeFileSync(join(root, "database.rules.json"), `${JSON.stringify(rules, null, 2)}\n`);
 console.log("generated database.rules.json");

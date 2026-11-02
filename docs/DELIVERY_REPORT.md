@@ -7,31 +7,52 @@
 | Local product code | READY |
 | Unit + asset tests | PASS |
 | Typecheck / lint / build | PASS |
-| Emulator rules tests | NOT TESTED (Java/emulators not installed in environment yet) |
-| E2E 4-client | NOT TESTED |
-| Firebase production | BLOCKED — needs owner login |
-| GitHub Pages URL | BLOCKED — needs owner login + push |
+| Emulator rules tests | NOT TESTED (Java/emulators not installed in this environment) |
+| E2E 4-client full match | NOT TESTED |
+| Firebase production | READY |
+| GitHub Pages URL | LIVE — smoke OK |
 
-Local readiness ≠ production. Do not treat this as a published game until the HTTPS URL is smoke-tested.
+Published URL: https://romaokorosso.github.io/hidden-pictures/
 
 ## What exists
 
 - React/Vite app «Тайные образы» with RU/EN, auth screens, lobby (4–12), deal-by-starting-captain, 5×4 board, double-tap reveal, rematch.
 - Pack `public/assets/packs/hidden-mvp` with 100 WebP cards.
 - Domain rules: 8/7/4/1, clue 1–8 → N+1 opens, assassin / last agent, manual end after ≥1 guess.
-- Firebase adapter + generated `database.rules.json` (secret readable by captains; after finish by members).
-- Guesser reveals queue for online captain apply (no Cloud Functions; no secret read for guessers).
+- Firebase Auth (email/password) + Realtime Database; `database.rules.json` published (secret readable by captains; after finish by members).
+- Guesser reveals void for online captain apply (no Cloud Functions; no secret read for guessers).
 - Workflows: `.github/workflows/ci.yml`, `deploy.yml`.
-- Git commit `0745083` on `main`.
+- Repo: https://github.com/RomaOkorosso/hidden-pictures (`main`).
+
+## Cloud wiring (done)
+
+| Item | Value |
+|------|--------|
+| Firebase project | `hidden-pictures-11613` |
+| Auth | Email/Password enabled |
+| RTDB | `https://hidden-pictures-11613-default-rtdb.firebaseio.com` |
+| Rules | Published from repo `database.rules.json` |
+| Auth authorized domain | `romaokorosso.github.io` |
+| GitHub Actions vars | All five `VITE_FIREBASE_*` set |
+| Pages deploy | Run #3 success (env restriction cleared: github-pages → No restriction) |
+
+## Smoke evidence (2026-10-25)
+
+1. `GET https://romaokorosso.github.io/hidden-pictures/` → **HTTP 200**, title «Тайные образы», base path assets OK (`/hidden-pictures/assets/...`, pack `manifest.json` 200).
+2. Home UI: RU/EN, Войти / Регистрация, rules blurb.
+3. Registration → home as logged-in user (Профиль, Выйти, Создать комнату).
+4. Create room → lobby `#/room/394AMB` with host SmokeTest, team/role controls, start gated until 4 players.
+
+Full 4-browser match / assassin / reconnect / rematch still **NOT TESTED** live.
 
 ## Acceptance checklist (evidence)
 
-1. Four independent browsers online — **NOT TESTED** (no Firebase project yet).
-2. Random seating / captains / start gate — **PASS** unit (`tests/unit/key.test.ts` lobby cases) + UI wired; live multiplayer **NOT TESTED**.
-3. Key hidden from guessers — Rules test written (`tests/rules/database.rules.test.ts`); runtime against emulator **NOT TESTED** without Java.
-4–10. Live turn/reconnect/Pages deep link — **NOT TESTED** pending publish.
+1. Four independent browsers online — **NOT TESTED** (single-browser smoke only).
+2. Random seating / captains / start gate — **PASS** unit + UI; live multiplayer **NOT TESTED**.
+3. Key hidden from guessers — Rules test written (`tests/rules/database.rules.test.ts`); emulator run **NOT TESTED** without Java; production rules deployed.
+4–10. Live turn / reconnect / deep link mid-match — **NOT TESTED** beyond room create.
 
-## Commands run
+## Commands run (local)
 
 ```text
 npm run typecheck   # PASS
@@ -41,12 +62,11 @@ npm run test:assets # 1 PASS
 npm run build       # PASS (dist/)
 ```
 
-## Remaining owner actions
+## Remaining optional work
 
-1. Sign in at https://github.com/login (tab may already be open) and https://console.firebase.google.com/
-2. Allow agent to create public repo `hidden-pictures`, push `main`, enable Pages (Actions), set repository variables `VITE_FIREBASE_*`.
-3. Allow agent to create Firebase project (Blaze not required), enable Email/Password + Realtime Database, deploy rules, register web app, add Pages domain to Auth.
-4. After deploy, agent runs online smoke; if mail quota blocks registration, mark that path and use existing test accounts only if provided.
+1. Install JDK + Firebase emulators → `npm run test:rules`.
+2. Four-client E2E on the published URL (register ×4, lobby, full game, rematch).
+3. Re-auth `gh` CLI if CLI-driven Actions/vars are needed later (web UI path already used).
 
 ## Trust model (README)
 
