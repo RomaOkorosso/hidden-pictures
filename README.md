@@ -6,7 +6,7 @@
 
 ## Локально
 
-Нужен **Node.js 20+** (`package.json` → `engines.node`). Системный Node 18 ломает `firebase-tools` (`ERR_REQUIRE_ESM` у `uuid`). Если `node -v` < 20:
+Нужен **Node.js 20+** (`package.json` → `engines.node`). Системный Node 18 ломает `firebase-tools` 15 (`ERR_REQUIRE_ESM` у `uuid`). Если `node -v` < 20:
 
 ```bash
 # вариант A: бинарь проекта (если есть .tools/node)
@@ -15,6 +15,8 @@ export PATH="$PWD/.tools/node/bin:$PATH"
 # вариант B: nvm
 nvm install 20 && nvm use 20
 ```
+
+Эмуляторы Auth/RTDB (`npm run emulators`, `firebase emulators:exec`, `npm run test:rules`) требуют **JDK 21+** (`java -version`). CI ставит Temurin 21 через `actions/setup-java`.
 
 ```bash
 npm ci
@@ -25,9 +27,9 @@ npm run emulators   # в отдельном терминале
 npm run dev
 ```
 
-Команды: `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:rules` (нужны эмуляторы), `npm run build`, `npm run deploy:rules`.
+Команды: `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:rules` (нужны эмуляторы + JDK 21), `npm run build`, `npm run deploy:rules`.
 
-`npm run deploy:rules` сам подхватит `.tools/node` при наличии, сгенерирует `database.rules.json` и задеплоит в Firebase project `hidden-pictures-11613`. Нужен `firebase login`. Без CLI: Console → Realtime Database → Rules → вставить содержимое `database.rules.json` → Publish.
+`npm run deploy:rules` сам подхватит `.tools/node` при наличии, сгенерирует `database.rules.json` и задеплоит в Firebase project `hidden-pictures-11613`. Нужен интерактивный `firebase login` (токен/service account в репозиторий не кладём). Без CLI: Console → Realtime Database → Rules → вставить содержимое `database.rules.json` → Publish.
 
 ## Ассеты
 

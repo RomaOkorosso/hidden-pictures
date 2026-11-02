@@ -8,7 +8,7 @@
 | Unit + asset tests | PASS |
 | Typecheck / lint / build | PASS |
 | Captain key viewer | READY (UI + RTDB rules; see `CAPTAIN_KEY_IMPLEMENTATION_REPORT.md`) |
-| Emulator rules tests | SKIPPED here (need Java + `npm run emulators`); cases written |
+| Emulator rules tests | CI runs via `emulators:exec` + Temurin JDK 21; local needs JDK 21 |
 | E2E 4-client full match | NOT TESTED |
 | Firebase production | READY |
 | GitHub Pages URL | LIVE — smoke OK |
@@ -65,9 +65,9 @@ npm run build       # PASS (dist/)
 
 ## Remaining optional work
 
-1. Install JDK + Firebase emulators → `npm run test:rules`.
-2. Four-client E2E on the published URL (register ×4, lobby, full game, rematch).
-3. Re-auth `gh` CLI if CLI-driven Actions/vars are needed later (web UI path already used).
+1. Owner: `firebase login` then `npm run deploy:rules` if production RTDB rules lag the repo (CLI not logged in on agent machines).
+2. Local: JDK 21+ → `npm run emulators` / `npm run test:rules` (CI already installs Temurin 21).
+3. Four-client E2E on the published URL (register ×4, lobby, full game, rematch).
 
 ## Trust model (README)
 
