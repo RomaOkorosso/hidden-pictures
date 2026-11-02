@@ -15,13 +15,14 @@
 
 ## Last commands
 
-- `npm run typecheck` / `test:unit` (16) / `build` — PASS
-- `npm run test:rules` — skipped without emulators
-- Report: `CAPTAIN_KEY_IMPLEMENTATION_REPORT.md`
+- Fixed rules tests: RTDB returns `roles` as array for keys 0–19; coerce via `coerceRolesMap`.
+- Bumped `firebase-tools` to 15.x (drops broken `universal-analytics`/`uuid` ESM); `deploy:rules` uses Node ≥20 / `.tools/node`.
+- `npm run test:rules` via emulators — expect PASS after push.
+- Production rules deploy still needs `firebase login` on owner machine.
 
 ## Next (owner)
 
-1. `npm run deploy:rules` (or paste `database.rules.json` in Console).
-2. Push/deploy Pages frontend.
-3. Optional: install JRE, `npm run emulators`, `npm run test:rules`.
+1. Node 20+: `export PATH="$PWD/.tools/node/bin:$PATH"` (or `nvm use 20`), then `firebase login` and `npm run deploy:rules`.
+2. Or paste `database.rules.json` in Console → Realtime Database → Rules → Publish.
+3. Push/deploy Pages frontend (CI).
 4. Smoke two captains → «Посмотреть ключ».

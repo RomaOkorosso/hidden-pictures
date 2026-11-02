@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "demo-hidden-pictures"
+    "default": "demo-hidden-pictures",
+    "prod": "hidden-pictures-11613"
   }
 }

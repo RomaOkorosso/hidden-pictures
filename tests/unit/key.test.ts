@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { assertValidKey, dealRoles, otherTeam, rolesToMap, sampleCardIds, targetCount } from "../../src/domain/key";
+import {
+  assertValidKey,
+  coerceRolesMap,
+  dealRoles,
+  otherTeam,
+  rolesToMap,
+  sampleCardIds,
+  targetCount,
+} from "../../src/domain/key";
 import { normalizeClueWord } from "../../src/domain/clue";
 import { applyReveal, applyClue, canEndTurn, endTurn, initialRemaining, normalizePublicMatch } from "../../src/domain/reveal";
 import { canStart, mayOpenCards, randomizeCaptains, randomizeTeams } from "../../src/domain/lobby";
@@ -27,6 +35,14 @@ describe("deal", () => {
     expect(roles.filter((r) => r === "red")).toHaveLength(8);
     expect(roles.filter((r) => r === "blue")).toHaveLength(7);
     assertValidKey(rolesToMap(roles), "red");
+  });
+
+  it("coerces RTDB array-shaped roles back to a position map", () => {
+    const asArray = dealRoles("red", () => 0.1);
+    const fromArray = coerceRolesMap(asArray);
+    const fromMap = coerceRolesMap(rolesToMap(asArray));
+    expect(fromArray).toEqual(fromMap);
+    assertValidKey(fromArray, "red");
   });
 
   it("samples 20 unique ids", () => {

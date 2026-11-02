@@ -14,7 +14,15 @@ import {
 import { requireFirebase } from "../firebase/app";
 import { GAME } from "../config/brand";
 import { normalizeClueWord, normalizeDisplayName, normalizeRoomCode, randomRoomCode } from "../domain/clue";
-import { guessesAllowed, dealRoles, otherTeam, pickStartingTeam, rolesToMap, sampleCardIds } from "../domain/key";
+import {
+  coerceRolesMap,
+  guessesAllowed,
+  dealRoles,
+  otherTeam,
+  pickStartingTeam,
+  rolesToMap,
+  sampleCardIds,
+} from "../domain/key";
 import {
   normalizeCaptainNotes,
   withCaptainMark,
@@ -376,9 +384,9 @@ export async function fetchCaptainKey(roomId: string, matchId: string): Promise<
   try {
     const snap = await get(ref(db(), `rooms/${roomId}/secret/${matchId}`));
     if (!snap.exists()) throw new Error("FORBIDDEN_KEY");
-    const key = snap.val() as SecretKey;
-    if (key.matchId !== matchId) throw new Error("STALE");
-    return key;
+    const raw = snap.val() as SecretKey;
+    if (raw.matchId !== matchId) throw new Error("STALE");
+    return { ...raw, roles: coerceRolesMap(raw.roles) };
   } catch (error) {
     if (error instanceof Error && (error.message === "FORBIDDEN_KEY" || error.message === "STALE")) throw error;
     if (isPermissionDenied(error)) throw new Error("FORBIDDEN_KEY");
@@ -398,8 +406,8 @@ export async function watchSecret(
         cb(null);
         return;
       }
-      const key = snap.val() as SecretKey;
-      cb(key.matchId === matchId ? key : null);
+      const raw = snap.val() as SecretKey;
+      cb(raw.matchId === matchId ? { ...raw, roles: coerceRolesMap(raw.roles) } : null);
     },
     () => {
       // Permission denied or network: never keep a stale key in memory.
@@ -473,7 +481,8 @@ export async function guessCard(roomId: string, uid: string, position: number, e
   if (pub.phase !== "guess") throw new Error("NOT_GUESS_PHASE");
   if (pub.revealed[String(position)]) throw new Error("ALREADY_REVEALED");
 
-  const secret = (await get(ref(db(), `rooms/${roomId}/secret/${pub.matchId}`))).val() as SecretKey | null;
+  const secretRaw = (await get(ref(db(), `rooms/${roomId}/secret/${pub.matchId}`))).val() as SecretKey | null;
+  const secret = secretRaw ? { ...secretRaw, roles: coerceRolesMap(secretRaw.roles) } : null;
   // Guesser cannot read secret — captains/host path only works for captains.
   // Guesser reveal: write intended position to actions; captains? No — Rules validate via root.
   // Client must include the role in the update; Rules check it matches secret without granting read.
@@ -577,7 +586,8 @@ export async function processPendingReveal(roomId: string, captainUid: string, a
     await set(ref(db(), `rooms/${roomId}/actions/${actionId}`), null);
     return;
   }
-  const secret = (await get(ref(db(), `rooms/${roomId}/secret/${pub.matchId}`))).val() as SecretKey;
+  const secretRaw = (await get(ref(db(), `rooms/${roomId}/secret/${pub.matchId}`))).val() as SecretKey;
+  const secret = { ...secretRaw, roles: coerceRolesMap(secretRaw.roles) };
   const role = secret.roles[String(action.position)];
   if (!role) throw new Error("BAD_POSITION");
   await commitReveal(roomId, action.uid, pub, action.position, role);

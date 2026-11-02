@@ -6,6 +6,16 @@
 
 ## Локально
 
+Нужен **Node.js 20+** (`package.json` → `engines.node`). Системный Node 18 ломает `firebase-tools` (`ERR_REQUIRE_ESM` у `uuid`). Если `node -v` < 20:
+
+```bash
+# вариант A: бинарь проекта (если есть .tools/node)
+export PATH="$PWD/.tools/node/bin:$PATH"
+
+# вариант B: nvm
+nvm install 20 && nvm use 20
+```
+
 ```bash
 npm ci
 cp .env.example .env.local
@@ -16,6 +26,8 @@ npm run dev
 ```
 
 Команды: `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:rules` (нужны эмуляторы), `npm run build`, `npm run deploy:rules`.
+
+`npm run deploy:rules` сам подхватит `.tools/node` при наличии, сгенерирует `database.rules.json` и задеплоит в Firebase project `hidden-pictures-11613`. Нужен `firebase login`. Без CLI: Console → Realtime Database → Rules → вставить содержимое `database.rules.json` → Publish.
 
 ## Ассеты
 

@@ -47,6 +47,20 @@ export function rolesToMap(roles: CardRole[]): Record<string, CardRole> {
   return map;
 }
 
+/**
+ * RTDB turns consecutive integer keys ("0"…"19") into a JS array on read.
+ * Normalize either shape back to the Record used by the domain.
+ */
+export function coerceRolesMap(roles: unknown): Record<string, CardRole> {
+  if (Array.isArray(roles)) {
+    return rolesToMap(roles as CardRole[]);
+  }
+  if (roles && typeof roles === "object") {
+    return roles as Record<string, CardRole>;
+  }
+  throw new Error("BAD_KEY_SHAPE");
+}
+
 export function assertValidKey(roles: Record<string, CardRole>, starting: Team): void {
   const values = Array.from({ length: GAME.boardSize }, (_, i) => roles[String(i)]);
   if (values.some((v) => v == null)) throw new Error("BAD_KEY_POSITIONS");

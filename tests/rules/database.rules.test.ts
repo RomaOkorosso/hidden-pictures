@@ -13,6 +13,7 @@ import {
 } from "@firebase/rules-unit-testing";
 import { ref, get, set, update } from "firebase/database";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { coerceRolesMap } from "../../src/domain/key";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const PROJECT = "demo-hidden-pictures";
@@ -149,8 +150,8 @@ describe("database rules", () => {
     const guesser = env.authenticatedContext("guessRed");
     const redSnap = await assertSucceeds(get(ref(red.database(), `rooms/${roomId}/secret/${matchId}`)));
     const blueSnap = await assertSucceeds(get(ref(blue.database(), `rooms/${roomId}/secret/${matchId}`)));
-    expect(redSnap.val().roles).toEqual(roles);
-    expect(blueSnap.val().roles).toEqual(redSnap.val().roles);
+    expect(coerceRolesMap(redSnap.val().roles)).toEqual(roles);
+    expect(coerceRolesMap(blueSnap.val().roles)).toEqual(coerceRolesMap(redSnap.val().roles));
     await assertFails(get(ref(guesser.database(), `rooms/${roomId}/secret/${matchId}`)));
     await assertFails(get(ref(guesser.database(), `rooms/${roomId}/secret`)));
   });
@@ -206,7 +207,7 @@ describe("database rules", () => {
     const captain = env.authenticatedContext("capRed");
     await assertFails(get(ref(captain.database(), `rooms/${roomId}/secret/${oldMatch}`)));
     const fresh = await assertSucceeds(get(ref(captain.database(), `rooms/${roomId}/secret/${newMatch}`)));
-    expect(fresh.val().roles).toEqual(newRoles);
+    expect(coerceRolesMap(fresh.val().roles)).toEqual(newRoles);
   });
 
   it("allows room members to read the active key only after the match finishes", async ({ skip }) => {
@@ -217,7 +218,7 @@ describe("database rules", () => {
 
     const guesser = env.authenticatedContext("guessRed");
     const snap = await assertSucceeds(get(ref(guesser.database(), `rooms/${roomId}/secret/${matchId}`)));
-    expect(snap.val().roles).toEqual(roles);
+    expect(coerceRolesMap(snap.val().roles)).toEqual(roles);
   });
 
   it("allows host to create room meta and first member together", async ({ skip }) => {

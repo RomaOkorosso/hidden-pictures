@@ -13,5 +13,6 @@ ui-debug.log
 playwright-report/
 test-results/
 .firebase/
+.tools/
 *.pem
 serviceAccount*.json
