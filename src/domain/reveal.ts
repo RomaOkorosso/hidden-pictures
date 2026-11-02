@@ -138,3 +138,24 @@ export function applyClue(match: PublicMatch, word: string, count: number, guess
 export function initialRemaining(starting: Team): { red: number; blue: number } {
   return starting === "red" ? { red: 8, blue: 7 } : { red: 7, blue: 8 };
 }
+
+/** RTDB drops empty objects/nulls; normalize before UI or domain logic. */
+export function normalizePublicMatch(raw: PublicMatch): PublicMatch {
+  const cardIds = Array.isArray(raw.cardIds)
+    ? raw.cardIds
+    : Object.keys((raw.cardIds as unknown as Record<string, string>) ?? {})
+        .sort((a, b) => Number(a) - Number(b))
+        .map((k) => (raw.cardIds as unknown as Record<string, string>)[k]!);
+  return {
+    ...raw,
+    cardIds,
+    revealed: raw.revealed ?? {},
+    remaining: raw.remaining ?? { red: 0, blue: 0 },
+    clueWord: raw.clueWord ?? null,
+    clueCount: raw.clueCount ?? null,
+    guessesLeft: raw.guessesLeft ?? null,
+    winner: raw.winner ?? null,
+    winReason: raw.winReason ?? null,
+    guessesMade: raw.guessesMade ?? 0,
+  };
+}

@@ -380,7 +380,7 @@ function GameBoard(props: {
 
       <div className="board" role="list">
         {match.cardIds.map((cardId, position) => {
-          const revealed = match.revealed[String(position)] as CardRole | undefined;
+          const revealed = (match.revealed ?? {})[String(position)] as CardRole | undefined;
           const keyRole = props.secret?.roles[String(position)] ?? null;
           const role = revealed ?? null;
           const file = props.imageById.get(cardId);

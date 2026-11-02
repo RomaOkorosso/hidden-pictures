@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { assertValidKey, dealRoles, otherTeam, rolesToMap, sampleCardIds, targetCount } from "../../src/domain/key";
 import { normalizeClueWord } from "../../src/domain/clue";
-import { applyReveal, applyClue, canEndTurn, endTurn, initialRemaining } from "../../src/domain/reveal";
+import { applyReveal, applyClue, canEndTurn, endTurn, initialRemaining, normalizePublicMatch } from "../../src/domain/reveal";
 import { canStart, mayOpenCards, randomizeCaptains, randomizeTeams } from "../../src/domain/lobby";
 import type { Member, PublicMatch } from "../../src/domain/types";
 import { guessesAllowed } from "../../src/domain/key";
@@ -48,6 +48,13 @@ describe("clue and reveal", () => {
       createdAt: 1,
     };
   }
+
+  it("restores revealed dropped by RTDB empty-object omission", () => {
+    const raw = { ...base(), revealed: undefined as unknown as PublicMatch["revealed"] };
+    const normalized = normalizePublicMatch(raw);
+    expect(normalized.revealed).toEqual({});
+    expect(normalized.revealed["0"]).toBeUndefined();
+  });
 
   it("accepts hyphenated unicode clue and N+1", () => {
     expect(normalizeClueWord("маяк-2")).toBe("маяк-2");

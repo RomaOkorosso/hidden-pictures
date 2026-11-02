@@ -15,7 +15,7 @@ import { requireFirebase } from "../firebase/app";
 import { GAME } from "../config/brand";
 import { normalizeClueWord, normalizeDisplayName, normalizeRoomCode, randomRoomCode } from "../domain/clue";
 import { guessesAllowed, dealRoles, otherTeam, pickStartingTeam, rolesToMap, sampleCardIds } from "../domain/key";
-import { applyClue, applyReveal, canEndTurn, endTurn, initialRemaining } from "../domain/reveal";
+import { applyClue, applyReveal, canEndTurn, endTurn, initialRemaining, normalizePublicMatch } from "../domain/reveal";
 import { assignSeat, canStart, mayOpenCards, randomizeCaptains, randomizeTeams } from "../domain/lobby";
 import type {
   CardRole,
@@ -209,7 +209,7 @@ export function watchRoom(
   );
   unsubs.push(
     onValue(ref(db(), `rooms/${roomId}/public`), (snap) => {
-      handlers.onPublic(snap.exists() ? (snap.val() as PublicMatch) : null);
+      handlers.onPublic(snap.exists() ? normalizePublicMatch(snap.val() as PublicMatch) : null);
     }),
   );
   unsubs.push(
@@ -380,7 +380,7 @@ export async function giveClue(roomId: string, uid: string, wordRaw: string, cou
   const guesses = guessesAllowed(count);
   const members = Object.values(((await get(ref(db(), `rooms/${roomId}/members`))).val() as Record<string, Member>) ?? {});
   const me = members.find((m) => m.uid === uid);
-  const pub = (await get(ref(db(), `rooms/${roomId}/public`))).val() as PublicMatch;
+  const pub = normalizePublicMatch((await get(ref(db(), `rooms/${roomId}/public`))).val() as PublicMatch);
   if (!me || me.role !== "captain" || me.team !== pub.currentTeam) throw new Error("NOT_YOUR_TURN");
   const next = applyClue(pub, word, count, guesses);
   await set(ref(db(), `rooms/${roomId}/public`), next);
@@ -396,7 +396,7 @@ export async function guessCard(roomId: string, uid: string, position: number, e
   const members = Object.values(((await get(ref(db(), `rooms/${roomId}/members`))).val() as Record<string, Member>) ?? {});
   const me = members.find((m) => m.uid === uid);
   const pubSnap = await get(ref(db(), `rooms/${roomId}/public`));
-  const pub = pubSnap.val() as PublicMatch;
+  const pub = normalizePublicMatch(pubSnap.val() as PublicMatch);
   if (pub.version !== expectedVersion) throw new Error("STALE");
   if (!me || !mayOpenCards(members, uid, pub.currentTeam)) throw new Error("NOT_YOUR_TURN");
   if (pub.phase !== "guess") throw new Error("NOT_GUESS_PHASE");
@@ -501,7 +501,7 @@ export async function processPendingReveal(roomId: string, captainUid: string, a
     matchId: string;
     version: number;
   };
-  const pub = (await get(ref(db(), `rooms/${roomId}/public`))).val() as PublicMatch;
+  const pub = normalizePublicMatch((await get(ref(db(), `rooms/${roomId}/public`))).val() as PublicMatch);
   if (pub.turnId !== action.turnId || pub.version !== action.version || pub.matchId !== action.matchId) {
     await set(ref(db(), `rooms/${roomId}/actions/${actionId}`), null);
     return;
@@ -529,7 +529,7 @@ export function watchDealRequest(roomId: string, cb: (pending: boolean) => void)
 export async function endTurnAction(roomId: string, uid: string): Promise<void> {
   const members = Object.values(((await get(ref(db(), `rooms/${roomId}/members`))).val() as Record<string, Member>) ?? {});
   const me = members.find((m) => m.uid === uid);
-  const pub = (await get(ref(db(), `rooms/${roomId}/public`))).val() as PublicMatch;
+  const pub = normalizePublicMatch((await get(ref(db(), `rooms/${roomId}/public`))).val() as PublicMatch);
   const canEndAsOpener = mayOpenCards(members, uid, pub.currentTeam);
   const canEndAsCaptain = me?.team === pub.currentTeam && me.role === "captain";
   if (!me || (!canEndAsOpener && !canEndAsCaptain)) {
