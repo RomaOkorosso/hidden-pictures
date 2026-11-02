@@ -21,7 +21,7 @@ import {
   watchRoom,
   watchSecret,
 } from "../../adapters/roomApi";
-import { canStart } from "../../domain/lobby";
+import { canStart, mayOpenCards } from "../../domain/lobby";
 import type { CardRole, GameEvent, Member, PublicMatch, RoomMeta, SeatRole, SecretKey, Team } from "../../domain/types";
 import { assetUrl, loadPack, roomInviteUrl, type PackManifest } from "../../lib/packs";
 import { useAuth } from "../auth/AuthProvider";
@@ -279,6 +279,7 @@ export function RoomPage() {
         <GameBoard
           match={match}
           me={me}
+          members={members}
           secret={isCaptain || meta.status === "finished" ? secret : null}
           imageById={imageById}
           packId={meta.packId}
@@ -330,6 +331,7 @@ export function RoomPage() {
 function GameBoard(props: {
   match: PublicMatch;
   me: Member;
+  members: Member[];
   secret: SecretKey | null;
   imageById: Map<string, string>;
   packId: string;
@@ -348,17 +350,26 @@ function GameBoard(props: {
   onRematch: () => void;
 }) {
   const { t } = useI18n();
-  const { match, me } = props;
+  const { match, me, members } = props;
   const myTurn = me.team === match.currentTeam;
   const canClue = !match.winner && match.phase === "clue" && myTurn && me.role === "captain";
-  const canGuess = !match.winner && match.phase === "guess" && myTurn && me.role === "guesser";
-  const canEnd = !match.winner && match.phase === "guess" && myTurn && match.guessesMade >= 1;
+  const canGuess = !match.winner && match.phase === "guess" && mayOpenCards(members, me.uid, match.currentTeam);
+  const canEnd =
+    !match.winner &&
+    match.phase === "guess" &&
+    match.guessesMade >= 1 &&
+    (canGuess || (myTurn && me.role === "captain"));
+  const duoTraining =
+    members.length === 2 &&
+    members.every((m) => m.role === "captain") &&
+    !match.winner;
 
   return (
     <div className="stack">
       <section className={`banner ${match.winner ?? match.currentTeam}`}>
         <h1>{match.winner ? t("winner", { team: t(match.winner) }) : t("turn", { team: t(match.currentTeam) })}</h1>
         <p>{t("remaining", { team: t("red"), n: match.remaining.red })} · {t("remaining", { team: t("blue"), n: match.remaining.blue })}</p>
+        {duoTraining ? <p className="muted">{t("duoTraining")}</p> : null}
         {match.phase === "guess" && match.clueWord ? (
           <p className="clue-banner">
             <strong>{match.clueWord}</strong> <span>{match.clueCount}</span>

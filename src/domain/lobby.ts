@@ -1,5 +1,5 @@
 import type { Member, SeatRole, Team } from "./types";
-import { shuffleInPlace } from "./key";
+import { otherTeam, shuffleInPlace } from "./key";
 
 export function teamCounts(members: Member[]): { red: number; blue: number; unassigned: number } {
   let red = 0;
@@ -21,12 +21,39 @@ export function guessersOf(members: Member[], team: Team): Member[] {
   return members.filter((m) => m.team === team && m.role === "guesser");
 }
 
+export function teamSize(members: Member[], team: Team): number {
+  return members.filter((m) => m.team === team).length;
+}
+
+/**
+ * Who may open cards on the current team's guess phase.
+ * Classic: field players of currentTeam.
+ * Duo training (no field on currentTeam): the opposite captain guesses.
+ */
+export function mayOpenCards(members: Member[], uid: string, currentTeam: Team): boolean {
+  const me = members.find((m) => m.uid === uid);
+  if (!me) return false;
+  if (me.team === currentTeam && me.role === "guesser") return true;
+  if (
+    me.role === "captain" &&
+    me.team === otherTeam(currentTeam) &&
+    guessersOf(members, currentTeam).length === 0
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function canStart(members: Member[]): boolean {
-  if (members.length < 4 || members.length > 12) return false;
+  if (members.length < 2 || members.length > 12) return false;
   if (members.some((m) => m.team == null || m.role == null)) return false;
   for (const team of ["red", "blue"] as const) {
     if (!captainOf(members, team)) return false;
-    if (guessersOf(members, team).length < 1) return false;
+    const size = teamSize(members, team);
+    if (size < 1) return false;
+    // Classic: 2+ on a side need a field player.
+    // Duo (1 per side): opposite captain opens cards as training.
+    if (size >= 2 && guessersOf(members, team).length < 1) return false;
   }
   return true;
 }

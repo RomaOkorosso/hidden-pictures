@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { assertValidKey, dealRoles, otherTeam, rolesToMap, sampleCardIds, targetCount } from "../../src/domain/key";
 import { normalizeClueWord } from "../../src/domain/clue";
 import { applyReveal, applyClue, canEndTurn, endTurn, initialRemaining } from "../../src/domain/reveal";
-import { canStart, randomizeCaptains, randomizeTeams } from "../../src/domain/lobby";
+import { canStart, mayOpenCards, randomizeCaptains, randomizeTeams } from "../../src/domain/lobby";
 import type { Member, PublicMatch } from "../../src/domain/types";
 import { guessesAllowed } from "../../src/domain/key";
 
@@ -99,7 +99,37 @@ describe("lobby", () => {
       seat("d", "blue", "guesser"),
     ];
     expect(canStart(members)).toBe(true);
-    expect(canStart(members.slice(0, 3))).toBe(false);
+    // Missing blue captain
+    expect(canStart([seat("a", "red", "captain"), seat("b", "red", "guesser"), seat("c", "blue", "guesser")])).toBe(false);
+    // Two on blue without a field player
+    expect(
+      canStart([
+        seat("a", "red", "captain"),
+        seat("b", "blue", "captain"),
+        seat("c", "blue", "captain"),
+      ]),
+    ).toBe(false);
+  });
+
+  it("allows duo training with two captains; opposite captain opens cards", () => {
+    const duo = [seat("a", "red", "captain"), seat("b", "blue", "captain")];
+    expect(canStart(duo)).toBe(true);
+    expect(mayOpenCards(duo, "a", "red")).toBe(false);
+    expect(mayOpenCards(duo, "b", "red")).toBe(true);
+    expect(mayOpenCards(duo, "a", "blue")).toBe(true);
+    expect(mayOpenCards(duo, "b", "blue")).toBe(false);
+  });
+
+  it("keeps classic field guessing when a team has guessers", () => {
+    const members = [
+      seat("a", "red", "captain"),
+      seat("b", "red", "guesser"),
+      seat("c", "blue", "captain"),
+      seat("d", "blue", "guesser"),
+    ];
+    expect(mayOpenCards(members, "b", "red")).toBe(true);
+    expect(mayOpenCards(members, "c", "red")).toBe(false);
+    expect(mayOpenCards(members, "a", "red")).toBe(false);
   });
 
   it("random seating balances and does not force first member captain", () => {

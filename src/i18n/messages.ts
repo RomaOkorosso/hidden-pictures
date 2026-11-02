@@ -47,8 +47,9 @@ const ru = {
   dealNow: "Раздать ключ",
   rules: "Справка",
   ruleBody:
-    "Две команды. Капитан даёт одно слово и число от 1 до 8. Поле может открыть до N+1 карт. Своя карта продолжает ход, чужая или нейтраль — конец хода. Убийца проигрывает сразу. Ключ видят только капитаны, пока партия не закончена.",
-  needRoles: "Нужны 4–12 игроков, по капитану и хотя бы по одному игроку поля в каждой команде.",
+    "Две команды. Капитан даёт одно слово и число от 1 до 8. Поле может открыть до N+1 карт. Своя карта продолжает ход, чужая или нейтраль — конец хода. Убийца проигрывает сразу. Ключ видят только капитаны, пока партия не закончена. Вдвоём (тренировка): по капитану в каждой команде — подсказку даёт свой капитан, карты открывает капитан соперника.",
+  needRoles: "Нужны 2–12 игроков и капитан в каждой команде. При 2+ в команде нужен игрок поля. Вдвоём достаточно двух капитанов (тренировка: угадывает соперник).",
+  duoTraining: "Тренировка вдвоём: карты открывает капитан противоположной команды.",
   clueWord: "Слово",
   clueCount: "Число",
   giveClue: "Подсказка",
@@ -83,7 +84,7 @@ const ru = {
   err_CANNOT_END_TURN: "Сначала сделайте хотя бы одну попытку.",
   nameHint: "2–24 символа. Почту другим не показываем.",
   passwordHint: "Не короче 6 символов.",
-  minPlayers: "Минимум 4 игрока.",
+  minPlayers: "Минимум 2 игрока.",
   reconnect: "Восстанавливаем связь…",
   awaitingReveal: "Капитан подтверждает открытие…",
 } as const;
@@ -135,8 +136,9 @@ const en: Record<MessageKey, string> = {
   dealNow: "Deal the key",
   rules: "Help",
   ruleBody:
-    "Two teams. The captain gives one word and a number from 1 to 8. Guessers may open up to N+1 cards. Your card keeps the turn; the other team or a bystander ends it. The assassin loses at once. Only captains see the key until the match ends.",
-  needRoles: "Need 4–12 players, one captain and at least one guesser per team.",
+    "Two teams. The captain gives one word and a number from 1 to 8. Guessers may open up to N+1 cards. Your card keeps the turn; the other team or a bystander ends it. The assassin loses at once. Only captains see the key until the match ends. Duo training: one captain per team — you clue your side, the opposing captain opens cards.",
+  needRoles: "Need 2–12 players and a captain on each team. With 2+ on a side, keep a field player. Duo works with two captains (training: the opponent opens cards).",
+  duoTraining: "Duo training: the opposing captain opens cards.",
   clueWord: "Word",
   clueCount: "Number",
   giveClue: "Give clue",
@@ -171,7 +173,7 @@ const en: Record<MessageKey, string> = {
   err_CANNOT_END_TURN: "Make at least one guess first.",
   nameHint: "2–24 characters. Others never see your email.",
   passwordHint: "At least 6 characters.",
-  minPlayers: "At least 4 players.",
+  minPlayers: "At least 2 players.",
   reconnect: "Reconnecting…",
   awaitingReveal: "Captain is applying the reveal…",
 };

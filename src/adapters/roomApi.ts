@@ -16,7 +16,7 @@ import { GAME } from "../config/brand";
 import { normalizeClueWord, normalizeDisplayName, normalizeRoomCode, randomRoomCode } from "../domain/clue";
 import { guessesAllowed, dealRoles, otherTeam, pickStartingTeam, rolesToMap, sampleCardIds } from "../domain/key";
 import { applyClue, applyReveal, canEndTurn, endTurn, initialRemaining } from "../domain/reveal";
-import { assignSeat, canStart, randomizeCaptains, randomizeTeams } from "../domain/lobby";
+import { assignSeat, canStart, mayOpenCards, randomizeCaptains, randomizeTeams } from "../domain/lobby";
 import type {
   CardRole,
   GameEvent,
@@ -398,7 +398,7 @@ export async function guessCard(roomId: string, uid: string, position: number, e
   const pubSnap = await get(ref(db(), `rooms/${roomId}/public`));
   const pub = pubSnap.val() as PublicMatch;
   if (pub.version !== expectedVersion) throw new Error("STALE");
-  if (!me || me.role !== "guesser" || me.team !== pub.currentTeam) throw new Error("NOT_YOUR_TURN");
+  if (!me || !mayOpenCards(members, uid, pub.currentTeam)) throw new Error("NOT_YOUR_TURN");
   if (pub.phase !== "guess") throw new Error("NOT_GUESS_PHASE");
   if (pub.revealed[String(position)]) throw new Error("ALREADY_REVEALED");
 
@@ -530,7 +530,9 @@ export async function endTurnAction(roomId: string, uid: string): Promise<void> 
   const members = Object.values(((await get(ref(db(), `rooms/${roomId}/members`))).val() as Record<string, Member>) ?? {});
   const me = members.find((m) => m.uid === uid);
   const pub = (await get(ref(db(), `rooms/${roomId}/public`))).val() as PublicMatch;
-  if (!me || me.team !== pub.currentTeam || (me.role !== "guesser" && me.role !== "captain")) {
+  const canEndAsOpener = mayOpenCards(members, uid, pub.currentTeam);
+  const canEndAsCaptain = me?.team === pub.currentTeam && me.role === "captain";
+  if (!me || (!canEndAsOpener && !canEndAsCaptain)) {
     throw new Error("NOT_YOUR_TURN");
   }
   if (!canEndTurn(pub)) throw new Error("CANNOT_END_TURN");
@@ -573,4 +575,4 @@ export async function transferHostIfStale(roomId: string, uid: string): Promise<
   await update(ref(db(), `rooms/${roomId}/meta`), { hostId: uid, updatedAt: nowMs() });
 }
 
-export { canStart, otherTeam };
+export { canStart, mayOpenCards, otherTeam };

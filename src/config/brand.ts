@@ -10,7 +10,7 @@ export const GAME = {
   boardSize: 20,
   cols: 5,
   rows: 4,
-  minPlayers: 4,
+  minPlayers: 2,
   maxPlayers: 12,
   clueMin: 1,
   clueMax: 8,
