@@ -3,7 +3,10 @@ import { assertValidKey, dealRoles, otherTeam, rolesToMap, sampleCardIds, target
 import { normalizeClueWord } from "../../src/domain/clue";
 import { applyReveal, applyClue, canEndTurn, endTurn, initialRemaining, normalizePublicMatch } from "../../src/domain/reveal";
 import { canStart, mayOpenCards, randomizeCaptains, randomizeTeams } from "../../src/domain/lobby";
-import type { Member, PublicMatch } from "../../src/domain/types";
+import { cellCoords, cellIndex, orderedKeyCells, toCaptainKeyView } from "../../src/domain/board";
+import { captainMarkRole, normalizeCaptainNotes, withCaptainMark } from "../../src/domain/marks";
+import { GAME } from "../../src/config/brand";
+import type { CardRole, Member, PublicMatch } from "../../src/domain/types";
 import { guessesAllowed } from "../../src/domain/key";
 
 describe("deal", () => {
@@ -19,11 +22,91 @@ describe("deal", () => {
     expect(targetCount("red", "blue")).toBe(7);
   });
 
+  it("builds 8/7/4/1 when red starts", () => {
+    const roles = dealRoles("red", () => 0.7);
+    expect(roles.filter((r) => r === "red")).toHaveLength(8);
+    expect(roles.filter((r) => r === "blue")).toHaveLength(7);
+    assertValidKey(rolesToMap(roles), "red");
+  });
+
   it("samples 20 unique ids", () => {
     const ids = Array.from({ length: 40 }, (_, i) => `card_${i}`);
     const board = sampleCardIds(ids, () => 0.2);
     expect(board).toHaveLength(20);
     expect(new Set(board).size).toBe(20);
+  });
+});
+
+describe("captain key board layout", () => {
+  it("uses 5×4 row-major indices", () => {
+    expect(GAME.cols).toBe(5);
+    expect(GAME.rows).toBe(4);
+    expect(GAME.boardSize).toBe(20);
+    expect(cellIndex(0, 0)).toBe(0);
+    expect(cellIndex(0, 4)).toBe(4);
+    expect(cellIndex(1, 0)).toBe(5);
+    expect(cellIndex(3, 4)).toBe(19);
+    expect(cellCoords(19)).toEqual({ row: 3, column: 4 });
+  });
+
+  it("orders key cells for the modal without mutating source roles", () => {
+    const roles = rolesToMap(dealRoles("red", () => 0.1));
+    const snapshot = structuredClone(roles);
+    const view = toCaptainKeyView("m-view", "red", roles);
+    expect(view.matchId).toBe("m-view");
+    expect(view.startingTeam).toBe("red");
+    expect(view.cells).toEqual(orderedKeyCells(roles));
+    expect(view.cells).toHaveLength(20);
+    expect(roles).toEqual(snapshot);
+  });
+
+  it("rejects incomplete role maps", () => {
+    const incomplete: Record<string, CardRole> = { "0": "red" };
+    expect(() => orderedKeyCells(incomplete)).toThrow("BAD_KEY_POSITIONS");
+  });
+});
+
+describe("captain private marks", () => {
+  it("maps own/enemy relative to the captain team", () => {
+    expect(captainMarkRole("red", "own")).toBe("red");
+    expect(captainMarkRole("red", "enemy")).toBe("blue");
+    expect(captainMarkRole("blue", "own")).toBe("blue");
+    expect(captainMarkRole("blue", "enemy")).toBe("red");
+    expect(captainMarkRole("red", "neutral")).toBe("neutral");
+    expect(captainMarkRole("red", "assassin")).toBe("assassin");
+  });
+
+  it("drops notes from a previous match and toggles marks", () => {
+    expect(normalizeCaptainNotes({ matchId: "old", marks: { "0": "own" } }, "new")).toEqual({});
+    expect(withCaptainMark({ "1": "enemy" }, 1, null)).toEqual({});
+    expect(withCaptainMark({}, 3, "assassin")).toEqual({ "3": "assassin" });
+  });
+});
+
+describe("viewing key does not mutate public match", () => {
+  it("leaves public fields untouched when building a view", () => {
+    const match: PublicMatch = {
+      matchId: "m-stable",
+      version: 4,
+      turnId: "m-stable-t2",
+      cardIds: Array.from({ length: 20 }, (_, i) => `c${i}`),
+      startingTeam: "blue",
+      currentTeam: "red",
+      phase: "guess",
+      clueWord: "маяк",
+      clueCount: 2,
+      guessesLeft: 2,
+      guessesMade: 1,
+      revealed: { "3": "neutral" },
+      remaining: { red: 8, blue: 7 },
+      winner: null,
+      winReason: null,
+      createdAt: 1,
+    };
+    const before = structuredClone(match);
+    const roles = rolesToMap(dealRoles("blue", () => 0.2));
+    toCaptainKeyView(match.matchId, match.startingTeam, roles);
+    expect(match).toEqual(before);
   });
 });
 

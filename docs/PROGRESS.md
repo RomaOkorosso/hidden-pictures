@@ -2,31 +2,26 @@
 
 - [x] Handoff docs + 100 cards (`hidden-mvp`)
 - [x] IMPLEMENTATION_PLAN
-- [x] Domain model + unit tests (8 PASS)
+- [x] Domain model + unit tests
 - [x] RTDB rules generator (`database.rules.json`)
 - [x] Firebase adapter + RU/EN UI (auth, lobby, game, double-tap)
 - [x] Asset check, typecheck, lint, production build PASS
 - [x] CI/Pages workflows
-- [x] Initial git commit on `main` (`0745083`)
+- [x] Join/create lobby fixes; duo training; empty `revealed` normalize
+- [x] Captain key viewer (modal, sticky button, private fetch, rematch-scoped rules)
 - [ ] Rules tests against emulators (need Java + running emulators)
 - [ ] E2E 4-browser contexts
-- [ ] Firebase project + deploy rules
-- [ ] GitHub repo + Pages publish + online smoke
+- [ ] Deploy updated RTDB rules + Pages frontend for captain key
 
 ## Last commands
 
-- `npm run typecheck` / `lint` / `test:unit` / `test:assets` / `build` — PASS
-- `git commit` — PASS
+- `npm run typecheck` / `test:unit` (16) / `build` — PASS
+- `npm run test:rules` — skipped without emulators
+- Report: `CAPTAIN_KEY_IMPLEMENTATION_REPORT.md`
 
-## Next
+## Next (owner)
 
-1. Owner signs into GitHub (browser tab open at https://github.com/login) and Firebase Console.
-2. Create public repo `hidden-pictures`, push, set Pages + Firebase vars.
-3. Create Firebase project, enable Email/RTDB, deploy rules, put web config in GitHub variables.
-4. Smoke HTTPS URL with 4 clients.
-
-## Blockers
-
-- No `gh` in PATH initially; installing to `~/.local/bin`.
-- System package install (Java for emulators) needs elevated approval.
-- GitHub/Firebase account login requires owner password/2FA in the open browser tab.
+1. `npm run deploy:rules` (or paste `database.rules.json` in Console).
+2. Push/deploy Pages frontend.
+3. Optional: install JRE, `npm run emulators`, `npm run test:rules`.
+4. Smoke two captains → «Посмотреть ключ».

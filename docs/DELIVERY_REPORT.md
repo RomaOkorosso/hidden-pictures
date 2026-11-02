@@ -7,7 +7,8 @@
 | Local product code | READY |
 | Unit + asset tests | PASS |
 | Typecheck / lint / build | PASS |
-| Emulator rules tests | NOT TESTED (Java/emulators not installed in this environment) |
+| Captain key viewer | READY (UI + RTDB rules; see `CAPTAIN_KEY_IMPLEMENTATION_REPORT.md`) |
+| Emulator rules tests | SKIPPED here (need Java + `npm run emulators`); cases written |
 | E2E 4-client full match | NOT TESTED |
 | Firebase production | READY |
 | GitHub Pages URL | LIVE — smoke OK |

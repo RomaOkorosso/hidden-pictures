@@ -15,6 +15,12 @@ import { requireFirebase } from "../firebase/app";
 import { GAME } from "../config/brand";
 import { normalizeClueWord, normalizeDisplayName, normalizeRoomCode, randomRoomCode } from "../domain/clue";
 import { guessesAllowed, dealRoles, otherTeam, pickStartingTeam, rolesToMap, sampleCardIds } from "../domain/key";
+import {
+  normalizeCaptainNotes,
+  withCaptainMark,
+  type CaptainMarkKind,
+  type CaptainNotes,
+} from "../domain/marks";
 import { applyClue, applyReveal, canEndTurn, endTurn, initialRemaining, normalizePublicMatch } from "../domain/reveal";
 import { assignSeat, canStart, mayOpenCards, randomizeCaptains, randomizeTeams } from "../domain/lobby";
 import type {
@@ -365,14 +371,79 @@ export async function captainDeal(roomId: string, uid: string): Promise<void> {
   });
 }
 
+/** One-shot private key read. Authz is enforced by RTDB rules (captain or finished member). */
+export async function fetchCaptainKey(roomId: string, matchId: string): Promise<SecretKey> {
+  try {
+    const snap = await get(ref(db(), `rooms/${roomId}/secret/${matchId}`));
+    if (!snap.exists()) throw new Error("FORBIDDEN_KEY");
+    const key = snap.val() as SecretKey;
+    if (key.matchId !== matchId) throw new Error("STALE");
+    return key;
+  } catch (error) {
+    if (error instanceof Error && (error.message === "FORBIDDEN_KEY" || error.message === "STALE")) throw error;
+    if (isPermissionDenied(error)) throw new Error("FORBIDDEN_KEY");
+    throw error;
+  }
+}
+
 export async function watchSecret(
   roomId: string,
   matchId: string,
   cb: (key: SecretKey | null) => void,
 ): Promise<Unsubscribe> {
-  return onValue(ref(db(), `rooms/${roomId}/secret/${matchId}`), (snap) => {
-    cb(snap.exists() ? (snap.val() as SecretKey) : null);
-  });
+  return onValue(
+    ref(db(), `rooms/${roomId}/secret/${matchId}`),
+    (snap) => {
+      if (!snap.exists()) {
+        cb(null);
+        return;
+      }
+      const key = snap.val() as SecretKey;
+      cb(key.matchId === matchId ? key : null);
+    },
+    () => {
+      // Permission denied or network: never keep a stale key in memory.
+      cb(null);
+    },
+  );
+}
+
+/** Private captain card marks — only the owning uid can read/write (RTDB rules). */
+export function watchCaptainNotes(
+  roomId: string,
+  uid: string,
+  matchId: string,
+  cb: (marks: Record<string, CaptainMarkKind>) => void,
+): Unsubscribe {
+  return onValue(
+    ref(db(), `rooms/${roomId}/captainNotes/${uid}`),
+    (snap) => {
+      cb(normalizeCaptainNotes(snap.exists() ? (snap.val() as CaptainNotes) : null, matchId));
+    },
+    () => {
+      cb({});
+    },
+  );
+}
+
+export async function setCaptainCardMark(
+  roomId: string,
+  uid: string,
+  matchId: string,
+  position: number,
+  kind: CaptainMarkKind | null,
+): Promise<void> {
+  if (position < 0 || position >= GAME.boardSize) throw new Error("BAD_POSITION");
+  const path = ref(db(), `rooms/${roomId}/captainNotes/${uid}`);
+  const snap = await get(path);
+  const current = normalizeCaptainNotes(snap.exists() ? (snap.val() as CaptainNotes) : null, matchId);
+  const marks = withCaptainMark(current, position, kind);
+  if (Object.keys(marks).length === 0) {
+    await set(path, null);
+    return;
+  }
+  const payload: CaptainNotes = { matchId, marks };
+  await set(path, payload);
 }
 
 export async function giveClue(roomId: string, uid: string, wordRaw: string, count: number): Promise<void> {

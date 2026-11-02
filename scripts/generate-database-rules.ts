@@ -89,9 +89,11 @@ const rules = {
           },
         },
         secret: {
+          // Only the active matchId may be read. Captains during play; any room member after finish.
+          // Auth identity comes from Firebase Auth token — never from client-supplied role fields.
           $matchId: {
             ".read":
-              `${auth} && (${isCaptain} || (root.child('rooms').child($roomId).child('meta').child('status').val() === 'finished' && ${member()}))`,
+              `${auth} && $matchId === root.child('rooms').child($roomId).child('meta').child('matchId').val() && (${isCaptain} || (root.child('rooms').child($roomId).child('meta').child('status').val() === 'finished' && ${member()}))`,
             ".write": `${auth} && ${isCaptain} && !data.exists()`,
             ".validate":
               `newData.child('matchId').val() === $matchId && newData.hasChildren(['matchId','roles','captainRed','captainBlue']) && ${allRolesPresent()} && ${countRole(
@@ -111,6 +113,29 @@ const rules = {
         dealRequests: {
           ".read": `${auth} && ${member()}`,
           ".write": `${auth} && (${isHost} || ${isCaptain})`,
+        },
+        // Private per-captain card marks. Never readable by other players.
+        captainNotes: {
+          $uid: {
+            ".read": `${auth} && auth.uid === $uid`,
+            ".write":
+              `${auth} && auth.uid === $uid && ${isCaptain} && root.child('rooms').child($roomId).child('meta').child('status').val() === 'playing'`,
+            ".validate":
+              `!newData.exists() || (` +
+              `newData.hasChildren(['matchId','marks']) &&` +
+              `newData.child('matchId').isString() &&` +
+              `newData.child('matchId').val() === root.child('rooms').child($roomId).child('meta').child('matchId').val()` +
+              `)`,
+            marks: {
+              $pos: {
+                ".validate":
+                  `!newData.exists() || (` +
+                  `newData.isString() &&` +
+                  `(newData.val() === 'own' || newData.val() === 'enemy' || newData.val() === 'neutral' || newData.val() === 'assassin')` +
+                  `)`,
+              },
+            },
+          },
         },
       },
     },

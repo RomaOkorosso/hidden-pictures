@@ -6,8 +6,11 @@ export default defineConfig({
     include: ["src/**/*.test.ts", "tests/unit/**/*.test.ts", "tests/rules/**/*.test.ts", "tests/assets/**/*.test.ts"],
     testTimeout: 60000,
     hookTimeout: 60000,
-    pool: "forks",
+    pool: "threads",
     fileParallelism: false,
     maxWorkers: 1,
+    poolOptions: {
+      threads: { singleThread: true },
+    },
   },
 });
