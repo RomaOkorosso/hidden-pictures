@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-14T20:14:16.240Z",
+  "url": "https://romaokorosso.github.io/hidden-pictures/",
+  "project": "hidden-pictures-11613",
+  "players": 4,
+  "completed": [
+    "agents victory",
+    "rematch",
+    "assassin victory"
+  ],
+  "security": [
+    "guesser key denied",
+    "role escalation denied",
+    "forced finish denied",
+    "old key denied"
+  ],
+  "syntheticRoomRemoved": true,
+  "syntheticAccountsRemoved": true
+}

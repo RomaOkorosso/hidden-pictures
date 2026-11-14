@@ -4,6 +4,8 @@
 
 Стек: React + TypeScript + Vite, Firebase Authentication (email/password), Firebase Realtime Database, GitHub Pages.
 
+[Открыть игру](https://romaokorosso.github.io/hidden-pictures/) — релиз проверен четырьмя независимыми игроками до завершения партий.
+
 ## Локально и автономный QA
 
 Нужны Node.js **24.12+ в поддерживаемой LTS-ветке** (проверено на 24.22.3, см. `.nvmrc`) и **JDK 21+** для эмуляторов. Системный Node 18 не подходит. При наличии локального бинаря QA: `export PATH="$PWD/.tools/node24-qa/bin:$PATH"`; глобальные настройки менять не требуется.
