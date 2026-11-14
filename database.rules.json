@@ -41,7 +41,7 @@
           ".write": "auth != null && root.child('rooms').child($roomId).child('members').child(auth.uid).exists()",
           "revealed": {
             "$pos": {
-              ".validate": "!newData.exists() || (newData.isString() &&(newData.val() === 'red' || newData.val() === 'blue' || newData.val() === 'neutral' || newData.val() === 'assassin') &&(!data.exists()) &&newData.val() === root.child('rooms').child($roomId).child('secret').child(newData.parent().parent().child('matchId').val()).child('roles').child($pos).val())"
+              ".validate": "!newData.exists() || (newData.isString() &&(newData.val() === 'red' || newData.val() === 'blue' || newData.val() === 'neutral' || newData.val() === 'assassin') &&((data.exists() && data.val() === newData.val()) || (!data.exists() &&newData.val() === root.child('rooms').child($roomId).child('secret').child(newData.parent().parent().child('matchId').val()).child('roles').child($pos).val())))"
             }
           }
         },

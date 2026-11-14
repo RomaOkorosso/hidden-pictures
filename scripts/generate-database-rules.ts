@@ -77,13 +77,17 @@ const rules = {
           ".read": `${auth} && ${member()}`,
           ".write": `${auth} && ${member()}`,
           revealed: {
+            // First write must match secret. Rewriting the same value is allowed so full
+            // `public` replacements (2nd+ reveal, clue, end turn) are not rejected.
             $pos: {
               ".validate":
                 `!newData.exists() || (` +
                 `newData.isString() &&` +
                 `(newData.val() === 'red' || newData.val() === 'blue' || newData.val() === 'neutral' || newData.val() === 'assassin') &&` +
-                `(!data.exists()) &&` +
+                `((data.exists() && data.val() === newData.val()) || (` +
+                `!data.exists() &&` +
                 `newData.val() === root.child('rooms').child($roomId).child('secret').child(newData.parent().parent().child('matchId').val()).child('roles').child($pos).val()` +
+                `))` +
                 `)`,
             },
           },

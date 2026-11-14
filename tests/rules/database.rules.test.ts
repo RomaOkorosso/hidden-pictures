@@ -210,6 +210,57 @@ describe("database rules", () => {
     expect(coerceRolesMap(fresh.val().roles)).toEqual(newRoles);
   });
 
+  it("allows a second reveal that rewrites existing revealed cells unchanged", async ({ skip }) => {
+    const env = requireEmulators(skip);
+    const roomId = "roomSecondReveal";
+    const matchId = "mReveal2";
+    const roles = await seedPlayingRoom(env, roomId, matchId);
+    const firstPos = "0";
+    const secondPos = "1";
+    const firstRole = roles[firstPos]!;
+    const secondRole = roles[secondPos]!;
+
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await update(ref(ctx.database(), `rooms/${roomId}/public`), {
+        revealed: { [firstPos]: firstRole },
+        guessesMade: 1,
+        guessesLeft: 2,
+        remaining: {
+          red: firstRole === "red" ? 7 : 8,
+          blue: firstRole === "blue" ? 6 : 7,
+        },
+        version: 2,
+        phase: "guess",
+        clueWord: "тест",
+        clueCount: 2,
+      });
+    });
+
+    const opener = env.authenticatedContext("capBlue");
+    const nextPublic = {
+      matchId,
+      version: 3,
+      turnId: `${matchId}-t1`,
+      cardIds: Array.from({ length: 20 }, (_, i) => `c${i}`),
+      startingTeam: "red",
+      currentTeam: "red",
+      phase: "guess",
+      clueWord: "тест",
+      clueCount: 2,
+      guessesLeft: 1,
+      guessesMade: 2,
+      revealed: { [firstPos]: firstRole, [secondPos]: secondRole },
+      remaining: {
+        red: (firstRole === "red" ? 7 : 8) - (secondRole === "red" ? 1 : 0),
+        blue: (firstRole === "blue" ? 6 : 7) - (secondRole === "blue" ? 1 : 0),
+      },
+      winner: null,
+      winReason: null,
+      createdAt: 1,
+    };
+    await assertSucceeds(set(ref(opener.database(), `rooms/${roomId}/public`), nextPublic));
+  });
+
   it("allows room members to read the active key only after the match finishes", async ({ skip }) => {
     const env = requireEmulators(skip);
     const roomId = "roomFinished";

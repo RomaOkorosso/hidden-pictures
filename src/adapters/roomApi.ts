@@ -558,7 +558,12 @@ async function commitReveal(
     updates[`rooms/${roomId}/meta/status`] = "finished";
     updates[`rooms/${roomId}/meta/updatedAt`] = nowMs();
   }
-  await update(ref(db()), updates);
+  try {
+    await update(ref(db()), updates);
+  } catch (error) {
+    if (isPermissionDenied(error)) throw new Error("REVEAL_DENIED");
+    throw error;
+  }
   await appendEvent(roomId, {
     at: nowMs(),
     type: "reveal",
