@@ -471,7 +471,12 @@ export async function giveClue(roomId: string, uid: string, wordRaw: string, cou
   });
 }
 
-export async function guessCard(roomId: string, uid: string, position: number, expectedVersion: number): Promise<void> {
+export async function guessCard(
+  roomId: string,
+  uid: string,
+  position: number,
+  expectedVersion: number,
+): Promise<"applied" | "queued"> {
   const members = Object.values(((await get(ref(db(), `rooms/${roomId}/members`))).val() as Record<string, Member>) ?? {});
   const me = members.find((m) => m.uid === uid);
   const pubSnap = await get(ref(db(), `rooms/${roomId}/public`));
@@ -481,66 +486,36 @@ export async function guessCard(roomId: string, uid: string, position: number, e
   if (pub.phase !== "guess") throw new Error("NOT_GUESS_PHASE");
   if (pub.revealed[String(position)]) throw new Error("ALREADY_REVEALED");
 
-  const secretRaw = (await get(ref(db(), `rooms/${roomId}/secret/${pub.matchId}`))).val() as SecretKey | null;
-  const secret = secretRaw ? { ...secretRaw, roles: coerceRolesMap(secretRaw.roles) } : null;
-  // Guesser cannot read secret — captains/host path only works for captains.
-  // Guesser reveal: write intended position to actions; captains? No — Rules validate via root.
-  // Client must include the role in the update; Rules check it matches secret without granting read.
-  // So guesser gets role only AFTER write succeeds by reading public.revealed.
-  // To know role before write: we cannot. Pattern: multipath update with role fetched... 
-  // Guesser doesn't know role. Solution: write action; use cloud function — not allowed.
-  // Alternative: transaction on public that Rules enrich — Rules can't enrich.
-  // Correct pattern without Functions: guesser writes `actions/reveal/{id}` with position;
-  // a captain OR the security rules on a special path... 
-  // Actually Firebase docs: client can write `revealed/$pos` to a value that Rules verify equals secret.
-  // Client must supply the value. If wrong, write fails. Guesser would need to guess the color — bad UX.
-  //
-  // Practical trusted-friends pattern used here:
-  // 1) Guesser writes reveal request under actions.
-  // 2) Any client that CAN read secret (captains) OR we store role map such that...
-  //
-  // Better approach for no-Functions: use RTDB Rules with `.validate` on a reveal request node
-  // that copies from secret using... Rules cannot copy.
-  //
-  // Use: guesser calls reveal with position; client reads secret if captain; if guesser,
-  // write to `public/revealed/$pos` using a Cloud Function — forbidden.
-  //
-  // Spec says: "Правила сервера обязаны проверять ... правильность результата открытия относительно приватного ключа"
-  // and "Клиент капитана может создавать секретный ключ".
-  // For reveal by guesser without reading key: the write includes position only in `actions`,
-  // and we use a RTDB-triggered... no functions.
-  //
-  // Working approach used by many RTDB games without Functions:
-  // Put each cell's role under `secret/roles/$pos` with `.read: false` but allow guesser to
-  // WRITE `public/revealed/$pos` where validate says newData == root.secret.roles.$pos.
-  // The guesser must still SEND the value. They can try all 4 values — 3 fail, 1 succeeds.
-  // That's a leak via timing/oracle (4 attempts reveal the color). Mitigate by:
-  // single action node: `reveals/{turnId}/{uid}/{pos}` write true, and public update done by... still need copy.
-  //
-  // Spec acceptance: "Оба угадывающих не получают его через SDK, REST, родительское чтение".
-  // Trying 4 writes is a side channel. Prefer:
-  // Store roles in secret; guesser writes action; BOTH captains have listeners that apply reveal
-  // when they see action — if no captain online, queue until captain reconnects.
-  // Host who is guesser cannot apply. This matches "awaiting captain" for deal.
-  //
-  // Implement: pendingReveals + captainApplyReveal.
+  // Captains can read secret and apply immediately. Guessers get PERMISSION_DENIED — queue instead.
+  let secret: SecretKey | null = null;
+  try {
+    const secretRaw = (await get(ref(db(), `rooms/${roomId}/secret/${pub.matchId}`))).val() as SecretKey | null;
+    if (secretRaw) secret = { ...secretRaw, roles: coerceRolesMap(secretRaw.roles) };
+  } catch (error) {
+    if (!isPermissionDenied(error)) throw error;
+  }
 
   if (secret) {
-    // Writer can read secret (captain testing as guesser shouldn't happen)
     const role = secret.roles[String(position)];
     if (!role) throw new Error("BAD_POSITION");
     await commitReveal(roomId, uid, pub, position, role);
-    return;
+    return "applied";
   }
 
-  await set(ref(db(), `rooms/${roomId}/actions/reveal-${pub.turnId}-${uid}-${position}`), {
-    uid,
-    position,
-    turnId: pub.turnId,
-    matchId: pub.matchId,
-    version: pub.version,
-    at: nowMs(),
-  });
+  try {
+    await set(ref(db(), `rooms/${roomId}/actions/reveal-${pub.turnId}-${uid}-${position}`), {
+      uid,
+      position,
+      turnId: pub.turnId,
+      matchId: pub.matchId,
+      version: pub.version,
+      at: nowMs(),
+    });
+  } catch (error) {
+    if (isPermissionDenied(error)) throw new Error("REVEAL_DENIED");
+    throw error;
+  }
+  return "queued";
 }
 
 async function commitReveal(
@@ -591,19 +566,34 @@ export async function processPendingReveal(roomId: string, captainUid: string, a
     await set(ref(db(), `rooms/${roomId}/actions/${actionId}`), null);
     return;
   }
-  const secretRaw = (await get(ref(db(), `rooms/${roomId}/secret/${pub.matchId}`))).val() as SecretKey;
-  const secret = { ...secretRaw, roles: coerceRolesMap(secretRaw.roles) };
-  const role = secret.roles[String(action.position)];
-  if (!role) throw new Error("BAD_POSITION");
-  await commitReveal(roomId, action.uid, pub, action.position, role);
+  try {
+    const secretRaw = (await get(ref(db(), `rooms/${roomId}/secret/${pub.matchId}`))).val() as SecretKey;
+    const secret = { ...secretRaw, roles: coerceRolesMap(secretRaw.roles) };
+    const role = secret.roles[String(action.position)];
+    if (!role) throw new Error("BAD_POSITION");
+    if (!pub.revealed[String(action.position)]) {
+      await commitReveal(roomId, action.uid, pub, action.position, role);
+    }
+  } catch (error) {
+    // Drop stale/duplicate queue items; keep real failures visible in console only.
+    if (!(error instanceof Error && (error.message === "ALREADY_REVEALED" || error.message === "STALE" || error.message === "MATCH_OVER" || error.message === "NO_GUESSES" || error.message === "NOT_GUESS_PHASE"))) {
+      if (!isPermissionDenied(error)) throw error;
+    }
+  }
   await set(ref(db(), `rooms/${roomId}/actions/${actionId}`), null);
 }
 
 export function watchActions(roomId: string, cb: (ids: string[]) => void): Unsubscribe {
-  return onValue(ref(db(), `rooms/${roomId}/actions`), (snap) => {
-    const val = snap.val() as Record<string, unknown> | null;
-    cb(val ? Object.keys(val).filter((k) => k.startsWith("reveal-")) : []);
-  });
+  return onValue(
+    ref(db(), `rooms/${roomId}/actions`),
+    (snap) => {
+      const val = snap.val() as Record<string, unknown> | null;
+      cb(val ? Object.keys(val).filter((k) => k.startsWith("reveal-")) : []);
+    },
+    () => {
+      cb([]);
+    },
+  );
 }
 
 export function watchDealRequest(roomId: string, cb: (pending: boolean) => void): Unsubscribe {

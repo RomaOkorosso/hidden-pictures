@@ -246,7 +246,14 @@ export function RoomPage() {
 
   return (
     <div className="stack">
-      {error ? <p className="error" role="alert">{err(error)}</p> : null}
+      {error ? (
+        <p
+          className={error instanceof Error && error.message === "AWAITING_REVEAL" ? "ok" : "error"}
+          role={error instanceof Error && error.message === "AWAITING_REVEAL" ? "status" : "alert"}
+        >
+          {err(error)}
+        </p>
+      ) : null}
 
       {meta.status === "lobby" || pendingDeal ? (
         <section className="panel">
@@ -391,8 +398,17 @@ export function RoomPage() {
             isHost={isHost}
             onClue={() => void run(() => giveClue(roomId, user.uid, clueWord, clueCount))}
             onReveal={(position) => void run(async () => {
-              await guessCard(roomId, user.uid, position, match.version);
+              const result = await guessCard(roomId, user.uid, position, match.version);
               setSelected(null);
+              if (result === "queued") {
+                // Guesser never reads secret; online captain applies from actions queue.
+                setError(new Error("AWAITING_REVEAL"));
+                window.setTimeout(() => {
+                  setError((prev: unknown) =>
+                    prev instanceof Error && prev.message === "AWAITING_REVEAL" ? null : prev,
+                  );
+                }, 2500);
+              }
             })}
             onMark={(position, kind) => void run(async () => {
               await setCaptainCardMark(roomId, user.uid, match.matchId, position, kind);

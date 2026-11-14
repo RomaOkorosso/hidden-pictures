@@ -118,6 +118,25 @@ const rules = {
           ".read": `${auth} && ${member()}`,
           ".write": `${auth} && (${isHost} || ${isCaptain})`,
         },
+        // Guesser reveal queue: field players enqueue position only (never roles).
+        // Only captains may read the queue / clear items after applying via secret.
+        actions: {
+          ".read": `${auth} && ${isCaptain}`,
+          $actionId: {
+            ".write":
+              `${auth} && ${member()} && (` +
+              `(!data.exists() && newData.hasChildren(['uid','position','turnId','matchId','version','at']) && newData.child('uid').val() === auth.uid) ||` +
+              `(data.exists() && !newData.exists() && ${isCaptain})` +
+              `)`,
+            ".validate":
+              `!newData.exists() || (` +
+              `newData.child('uid').val() === auth.uid &&` +
+              `newData.child('position').isNumber() && newData.child('position').val() >= 0 && newData.child('position').val() <= 19 &&` +
+              `newData.child('turnId').isString() && newData.child('matchId').isString() &&` +
+              `newData.child('version').isNumber() && newData.child('at').isNumber()` +
+              `)`,
+          },
+        },
         // Private per-captain card marks. Never readable by other players.
         captainNotes: {
           $uid: {

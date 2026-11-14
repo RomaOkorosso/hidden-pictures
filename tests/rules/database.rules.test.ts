@@ -210,6 +210,32 @@ describe("database rules", () => {
     expect(coerceRolesMap(fresh.val().roles)).toEqual(newRoles);
   });
 
+  it("lets a guesser enqueue a reveal action and blocks strangers", async ({ skip }) => {
+    const env = requireEmulators(skip);
+    const roomId = "roomActions";
+    const matchId = "mAct";
+    await seedPlayingRoom(env, roomId, matchId);
+
+    const guesser = env.authenticatedContext("guessRed");
+    const stranger = env.authenticatedContext("outsider");
+    const captain = env.authenticatedContext("capRed");
+    const actionPath = `rooms/${roomId}/actions/reveal-t1-guessRed-3`;
+    const payload = {
+      uid: "guessRed",
+      position: 3,
+      turnId: "t1",
+      matchId,
+      version: 1,
+      at: 1,
+    };
+    await assertSucceeds(set(ref(guesser.database(), actionPath), payload));
+    await assertSucceeds(get(ref(captain.database(), `rooms/${roomId}/actions`)));
+    await assertFails(get(ref(guesser.database(), `rooms/${roomId}/actions`)));
+    await assertFails(get(ref(guesser.database(), `rooms/${roomId}/secret/${matchId}`)));
+    await assertFails(set(ref(stranger.database(), actionPath), { ...payload, uid: "outsider" }));
+    await assertSucceeds(set(ref(captain.database(), actionPath), null));
+  });
+
   it("allows a second reveal that rewrites existing revealed cells unchanged", async ({ skip }) => {
     const env = requireEmulators(skip);
     const roomId = "roomSecondReveal";
