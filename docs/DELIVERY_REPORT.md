@@ -1,74 +1,9 @@
-# Delivery report — Тайные образы / Hidden Pictures
+# Delivery report — автономный QA
 
-## Status summary
+Актуальные результаты, воспроизводимые дефекты, доказательства и ограничения находятся в [QA_REPORT.md](../QA_REPORT.md). Решение о выпуске — в [QA_RELEASE_GATE.md](../QA_RELEASE_GATE.md).
 
-| Area | Status |
-|------|--------|
-| Local product code | READY |
-| Unit + asset tests | PASS |
-| Typecheck / lint / build | PASS |
-| Captain key viewer | READY (UI + RTDB rules; see `CAPTAIN_KEY_IMPLEMENTATION_REPORT.md`) |
-| Emulator rules tests | CI runs via `emulators:exec` + Temurin JDK 21; local needs JDK 21 |
-| E2E 4-client full match | NOT TESTED |
-| Firebase production | READY |
-| GitHub Pages URL | LIVE — smoke OK |
+Работа выполнена в отдельной ветке `codex/autonomous-qa`. Firebase Auth/Realtime Database проверяются локальными эмуляторами через обычный клиентский SDK и реальные действия Playwright. Добавлены многопользовательские сценарии и отрицательные проверки доступа, устранены найденные обходы роли и статуса, исправлено открытие карт полем.
 
-Published URL: https://romaokorosso.github.io/hidden-pictures/
+Тестовые команды сами поднимают и останавливают свои сервисы. Для воспроизведения, восстановления и обновления см. [QA_RECOVERY.md](QA_RECOVERY.md).
 
-## What exists
-
-- React/Vite app «Тайные образы» with RU/EN, auth screens, lobby (4–12), deal-by-starting-captain, 5×4 board, double-tap reveal, rematch.
-- Pack `public/assets/packs/hidden-mvp` with 100 WebP cards.
-- Domain rules: 8/7/4/1, clue 1–8 → N+1 opens, assassin / last agent, manual end after ≥1 guess.
-- Firebase Auth (email/password) + Realtime Database; `database.rules.json` published (secret readable by captains; after finish by members).
-- Guesser reveals void for online captain apply (no Cloud Functions; no secret read for guessers).
-- Workflows: `.github/workflows/ci.yml`, `deploy.yml`.
-- Repo: https://github.com/RomaOkorosso/hidden-pictures (`main`).
-
-## Cloud wiring (done)
-
-| Item | Value |
-|------|--------|
-| Firebase project | `hidden-pictures-11613` |
-| Auth | Email/Password enabled |
-| RTDB | `https://hidden-pictures-11613-default-rtdb.firebaseio.com` |
-| Rules | Published from repo `database.rules.json` |
-| Auth authorized domain | `romaokorosso.github.io` |
-| GitHub Actions vars | All five `VITE_FIREBASE_*` set |
-| Pages deploy | Run #3 success (env restriction cleared: github-pages → No restriction) |
-
-## Smoke evidence (2026-10-25)
-
-1. `GET https://romaokorosso.github.io/hidden-pictures/` → **HTTP 200**, title «Тайные образы», base path assets OK (`/hidden-pictures/assets/...`, pack `manifest.json` 200).
-2. Home UI: RU/EN, Войти / Регистрация, rules blurb.
-3. Registration → home as logged-in user (Профиль, Выйти, Создать комнату).
-4. Create room → lobby `#/room/394AMB` with host SmokeTest, team/role controls, start gated until 4 players.
-
-Full 4-browser match / assassin / reconnect / rematch still **NOT TESTED** live.
-
-## Acceptance checklist (evidence)
-
-1. Four independent browsers online — **NOT TESTED** (single-browser smoke only).
-2. Random seating / captains / start gate — **PASS** unit + UI; live multiplayer **NOT TESTED**.
-3. Key hidden from guessers — Rules test written (`tests/rules/database.rules.test.ts`); emulator run **NOT TESTED** without Java; production rules deployed.
-4–10. Live turn / reconnect / deep link mid-match — **NOT TESTED** beyond room create.
-
-## Commands run (local)
-
-```text
-npm run typecheck   # PASS
-npm run lint        # PASS
-npm run test:unit   # 8 PASS
-npm run test:assets # 1 PASS
-npm run build       # PASS (dist/)
-```
-
-## Remaining optional work
-
-1. Owner: `firebase login` then `npm run deploy:rules` if production RTDB rules lag the repo (CLI not logged in on agent machines).
-2. Local: JDK 21+ → `npm run emulators` / `npm run test:rules` (CI already installs Temurin 21).
-3. Four-client E2E on the published URL (register ×4, lobby, full game, rematch).
-
-## Trust model (README)
-
-Captains know the key by role. Deal randomness is not cryptographically proven. Guessers never receive the key via SDK read of `secret`.
+Прежние утверждения этого файла о готовности production не подтверждались текущей проверкой. Продакшен не затронут. Исправления, правила и frontend не публиковались; живой сайт может содержать прежние дефекты. Локальный успешный тест не доказывает, что облачная конфигурация уже обновлена.

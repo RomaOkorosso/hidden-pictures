@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
       # firebase-tools 15+ emulator suite requires JDK 21+
       - uses: actions/setup-java@v4
@@ -33,7 +33,17 @@ jobs:
       - run: npm run lint
       - run: npm run test:unit
       - run: npm run test:assets
-      - run: npx firebase emulators:exec --only auth,database --project demo-hidden-pictures "npm run test:rules"
+      - run: npm run test:rules
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-browser-evidence
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
       - run: npm run build
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/

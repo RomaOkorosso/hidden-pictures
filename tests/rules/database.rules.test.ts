@@ -1,6 +1,6 @@
 /**
  * Rules tests require Firebase emulators.
- * They are skipped automatically when emulators are not reachable.
+ * npm run test:rules starts an isolated emulator; initialization failures fail the suite.
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -11,7 +11,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { ref, get, set, update } from "firebase/database";
+import { ref, get, set, update, serverTimestamp } from "firebase/database";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { coerceRolesMap } from "../../src/domain/key";
 
@@ -27,14 +27,13 @@ beforeAll(async () => {
       projectId: PROJECT,
       database: {
         host: "127.0.0.1",
-        port: 9000,
+        port: Number(process.env.FIREBASE_DATABASE_EMULATOR_HOST?.split(":")[1] || 9000),
         rules: readFileSync(join(root, "database.rules.json"), "utf8"),
       },
     });
     available = true;
-  } catch {
-    available = false;
-    testEnv = null;
+  } catch (error) {
+    throw new Error("Rules tests require a running isolated emulator", { cause: error });
   }
 });
 
@@ -219,11 +218,14 @@ describe("database rules", () => {
     const guesser = env.authenticatedContext("guessRed");
     const stranger = env.authenticatedContext("outsider");
     const captain = env.authenticatedContext("capRed");
-    const actionPath = `rooms/${roomId}/actions/reveal-t1-guessRed-3`;
+    await env.withSecurityRulesDisabled(async ctx => {
+      await update(ref(ctx.database(), `rooms/${roomId}/public`), { currentTeam: "red", phase: "guess", guessesLeft: 3 });
+    });
+    const actionPath = `rooms/${roomId}/actions/reveal-${matchId}-t1-guessRed-3`;
     const payload = {
       uid: "guessRed",
       position: 3,
-      turnId: "t1",
+      turnId: `${matchId}-t1`,
       matchId,
       version: 1,
       at: 1,
@@ -354,6 +356,7 @@ describe("database rules", () => {
     await assertSucceeds(get(ref(joiner.database(), `roomCodes/WN2MZF`)));
     await assertSucceeds(get(ref(joiner.database(), `rooms/${roomId}/meta`)));
     await assertSucceeds(get(ref(joiner.database(), `rooms/${roomId}/members`)));
+    await assertSucceeds(set(ref(joiner.database(), `rooms/${roomId}/joinLock`), { uid: "guest2", at: serverTimestamp() }));
     await assertSucceeds(
       set(ref(joiner.database(), `rooms/${roomId}/members/guest2`), {
         uid: "guest2",
@@ -421,5 +424,90 @@ describe("database rules", () => {
         lastSeenAt: 2,
       }),
     );
+  });
+});
+
+
+describe("QA privilege escalation regressions", () => {
+  for (const [name, uid, path, patch] of [
+    ["guesser self promotion", "guessRed", "members/guessRed", { role: "captain" }],
+    ["stranger promotes an existing member", "outsider", "members/guessRed", { role: "captain" }],
+    ["guesser finishes match to read key", "guessRed", "meta", { status: "finished" }],
+    ["stranger hijacks host", "outsider", "meta", { hostId: "outsider" }],
+    ["guesser forges winner", "guessRed", "public", { winner: "red" }],
+  ] as const) {
+    it(`denies ${name}`, async ({ skip }) => {
+      const env = requireEmulators(skip);
+      await seedPlayingRoom(env, "attack", "m1");
+      await assertFails(update(ref(env.authenticatedContext(uid).database(), `rooms/attack/${path}`), patch));
+    });
+  }
+});
+
+describe('QA authorization and replay boundaries', () => {
+  it('rejects opponent, stale and fractional reveal requests', async ({ skip }) => {
+    const env = requireEmulators(skip);
+    await seedPlayingRoom(env, 'queueBoundary', 'm1');
+    const db = env.authenticatedContext('guessRed').database();
+    const action = { uid: 'guessRed', position: 2, turnId: 'm1-t1', matchId: 'm1', version: 1, at: 1 };
+    await assertFails(set(ref(db, 'rooms/queueBoundary/actions/reveal-wrong-turn'), action));
+    await env.withSecurityRulesDisabled(async ctx => {
+      await update(ref(ctx.database(), 'rooms/queueBoundary/public'), { currentTeam: 'red', phase: 'guess', guessesLeft: 3 });
+    });
+    await assertFails(set(ref(db, 'rooms/queueBoundary/actions/reveal-stale'), { ...action, version: 0 }));
+    await assertFails(set(ref(db, 'rooms/queueBoundary/actions/reveal-fraction'), { ...action, position: 2.5 }));
+    await assertSucceeds(set(ref(db, 'rooms/queueBoundary/actions/reveal-valid'), action));
+  });
+  it('rejects member deletion, host status bypass and key overwrite during play', async ({ skip }) => {
+    const env = requireEmulators(skip);
+    const roles = await seedPlayingRoom(env, 'immutable', 'm1');
+    const outsider = env.authenticatedContext('outsider').database();
+    const host = env.authenticatedContext('capRed').database();
+    await assertFails(set(ref(outsider, 'rooms/immutable/members/capRed'), null));
+    await assertFails(update(ref(host, 'rooms/immutable/meta'), { status: 'finished' }));
+    await assertFails(set(ref(host, 'rooms/immutable/secret/m1'), { matchId: 'm1', roles, captainRed: 'capRed', captainBlue: 'capBlue' }));
+    await assertFails(get(ref(outsider, 'profiles/capRed')));
+  });
+});
+
+describe('QA key identity binding', () => {
+  it('denies a third roster captain who was not selected into the active key', async ({ skip }) => {
+    const env = requireEmulators(skip);
+    await seedPlayingRoom(env, 'thirdCaptain', 'm1');
+    await env.withSecurityRulesDisabled(async ctx => {
+      await set(ref(ctx.database(), 'rooms/thirdCaptain/members/fakeCaptain'), {
+        uid: 'fakeCaptain', displayName: 'Fake', team: 'red', role: 'captain', joinedAt: 1, lastSeenAt: 1,
+      });
+    });
+    const db = env.authenticatedContext('fakeCaptain').database();
+    await assertFails(get(ref(db, 'rooms/thirdCaptain/secret/m1')));
+    await assertFails(update(ref(db, 'rooms/thirdCaptain/public'), { winner: 'red', version: 2 }));
+    await assertFails(update(ref(db, 'rooms/thirdCaptain/meta'), { status: 'finished' }));
+  });
+});
+
+describe('QA lobby join lease', () => {
+  it('requires ownership for new seats, protects the lease and rejects extra roster fields', async ({ skip }) => {
+    const env = requireEmulators(skip);
+    await seedPlayingRoom(env, 'leaseRoom', 'm1');
+    await env.withSecurityRulesDisabled(async ctx => {
+      await update(ref(ctx.database(), 'rooms/leaseRoom/meta'), { status: 'lobby' });
+    });
+    const alice = env.authenticatedContext('alice').database();
+    const bob = env.authenticatedContext('bob').database();
+    const lease = 'rooms/leaseRoom/joinLock';
+    const seat = { uid: 'alice', displayName: 'Alice', joinedAt: 1, lastSeenAt: 1 };
+    await assertFails(set(ref(alice, 'rooms/leaseRoom/members/alice'), seat));
+    await assertSucceeds(set(ref(alice, lease), { uid: 'alice', at: serverTimestamp() }));
+    await assertFails(set(ref(bob, lease), { uid: 'bob', at: serverTimestamp() }));
+    await assertFails(set(ref(bob, lease), null));
+    await assertSucceeds(set(ref(alice, 'rooms/leaseRoom/members/alice'), seat));
+    await assertFails(update(ref(alice, 'rooms/leaseRoom/members/alice'), { hiddenRole: 'captain' }));
+    await env.withSecurityRulesDisabled(async ctx => {
+      await set(ref(ctx.database(), lease), { uid: 'alice', at: Date.now() - 11_000 });
+    });
+    await assertSucceeds(set(ref(bob, lease), { uid: 'bob', at: serverTimestamp() }));
+    await assertFails(set(ref(bob, lease), { uid: 'bob', at: 0 }));
+    await assertSucceeds(set(ref(bob, lease), null));
   });
 });

@@ -1,0 +1,18 @@
+  1) tests/e2e/multiplayer.spec.ts:226:1 › repeated disconnect/reconnect restores presence and gameplay
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 15000ms exceeded while waiting on the predicate
+
+      234 |       await expect.poll(async () => (await sdk(host, 'read', `rooms/${roomId}/presence/${uid}`)).online).toBe(false);
+      235 |       await sdk(guest, 'reconnect');
+    > 236 |       await expect.poll(async () => (await sdk(host, 'read', `rooms/${roomId}/presence/${uid}`)).online).toBe(true);
+          |                                                                                                          ^
+      237 |     }
+      238 |     await expect(guest.locator('.board .tile')).toHaveCount(20);
+      239 |   } finally { await closePages(pages); }
+        at /home/roma/Desktop/codenames-picture-online/tests/e2e/multiplayer.spec.ts:236:106

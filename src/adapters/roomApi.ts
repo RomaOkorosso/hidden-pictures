@@ -121,7 +121,7 @@ function isPermissionDenied(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const code = "code" in error ? String((error as { code: unknown }).code) : "";
   const message = "message" in error ? String((error as { message: unknown }).message) : "";
-  return code.includes("PERMISSION_DENIED") || message.includes("PERMISSION_DENIED");
+  return /permission[ _]denied/i.test(`${code} ${message}`);
 }
 
 export async function joinRoom(roomId: string, uid: string, displayName: string): Promise<void> {
@@ -148,32 +148,44 @@ export async function joinRoom(roomId: string, uid: string, displayName: string)
     }
     return;
   }
-  let members: Record<string, Member> | null = null;
-  try {
-    const membersSnap = await get(ref(db(), `rooms/${roomId}/members`));
-    members = membersSnap.val() as Record<string, Member> | null;
-  } catch (error) {
-    if (isPermissionDenied(error)) throw new Error("MATCH_LOCKED");
-    throw error;
+  const memberRef = ref(db(), `rooms/${roomId}/members/${uid}`);
+  if ((await get(memberRef)).exists()) {
+    await update(memberRef, { displayName: name, lastSeenAt: nowMs() });
+    return;
   }
-  const count = members ? Object.keys(members).length : 0;
-  if (!members?.[uid] && count >= GAME.maxPlayers) throw new Error("ROOM_FULL");
-
-  const member: Member = members?.[uid] ?? {
-    uid,
-    displayName: name,
-    team: null,
-    role: null,
-    joinedAt: nowMs(),
-    lastSeenAt: nowMs(),
-  };
-  member.displayName = name;
-  member.lastSeenAt = nowMs();
+  // Serialize new seats with a bounded, server-timestamped lobby lease. A roster
+  // transaction would require granting parent writes over other users' records.
+  const lockRef = ref(db(), `rooms/${roomId}/joinLock`);
+  const offset = await new Promise<number>((resolve, reject) => {
+    onValue(ref(db(), ".info/serverTimeOffset"), snap => resolve(Number(snap.val()) || 0), reject, { onlyOnce: true });
+  });
+  const deadline = nowMs() + 20_000;
+  let acquired = false;
+  const disconnect = onDisconnect(lockRef);
   try {
-    await set(ref(db(), `rooms/${roomId}/members/${uid}`), member);
+    while (nowMs() < deadline) {
+      const lease = await runTransaction(lockRef, current => {
+        if (current && current.uid !== uid && Number(current.at) + 10_000 > nowMs() + offset) return;
+        return { uid, at: serverTimestamp() };
+      }, { applyLocally: false });
+      if (lease.committed) { acquired = true; break; }
+      await new Promise(resolve => window.setTimeout(resolve, 100 + Math.random() * 100));
+    }
+    if (!acquired) throw new Error("ROOM_BUSY");
+    await disconnect.remove();
+    const members = ((await get(ref(db(), `rooms/${roomId}/members`))).val() ?? {}) as Record<string, Member>;
+    if (!members[uid] && Object.keys(members).length >= GAME.maxPlayers) throw new Error("ROOM_FULL");
+    if (!members[uid]) {
+      await set(memberRef, { uid, displayName: name, team: null, role: null, joinedAt: nowMs(), lastSeenAt: nowMs() });
+    }
   } catch (error) {
     if (isPermissionDenied(error)) throw new Error("MATCH_LOCKED");
     throw error;
+  } finally {
+    if (acquired) {
+      await set(lockRef, null).catch(() => undefined);
+      await disconnect.cancel().catch(() => undefined);
+    }
   }
 }
 
@@ -242,15 +254,33 @@ export function watchRoom(
 
 export async function bindPresence(roomId: string, uid: string): Promise<() => void> {
   const presenceRef = ref(db(), `rooms/${roomId}/presence/${uid}`);
-  await set(presenceRef, { online: true, at: nowMs() });
-  await onDisconnect(presenceRef).set({ online: false, at: serverTimestamp() });
+  const disconnect = onDisconnect(presenceRef);
+  let stopped = false;
+  let connected = false;
+  let generation = 0;
+  // onDisconnect is one-shot: re-arm it on EVERY connection, before announcing online.
+  const stopConnection = onValue(ref(db(), ".info/connected"), snap => {
+    connected = snap.val() === true;
+    const current = ++generation;
+    if (!connected || stopped) return;
+    void (async () => {
+      await disconnect.set({ online: false, at: serverTimestamp() });
+      if (stopped || current !== generation) return;
+      await set(presenceRef, { online: true, at: nowMs() });
+    })().catch(() => undefined);
+  });
   const timer = window.setInterval(() => {
-    void update(ref(db(), `rooms/${roomId}/members/${uid}`), { lastSeenAt: nowMs() });
-    void set(presenceRef, { online: true, at: nowMs() });
+    if (!connected || stopped) return;
+    void update(ref(db(), `rooms/${roomId}/members/${uid}`), { lastSeenAt: nowMs() }).catch(() => undefined);
+    void set(presenceRef, { online: true, at: nowMs() }).catch(() => undefined);
   }, 20_000);
   return () => {
+    stopped = true;
+    ++generation;
+    stopConnection();
     window.clearInterval(timer);
-    void set(presenceRef, { online: false, at: nowMs() });
+    void disconnect.cancel().catch(() => undefined);
+    void set(presenceRef, { online: false, at: nowMs() }).catch(() => undefined);
   };
 }
 
@@ -291,7 +321,10 @@ export async function claimCaptain(roomId: string, uid: string, team: Team): Pro
   if (!me || me.team !== team) throw new Error("BAD_ASSIGNMENT");
   const next = assignSeat(members, uid, team, "captain");
   const updates: Record<string, unknown> = {};
-  for (const m of next) updates[`rooms/${roomId}/members/${m.uid}`] = m;
+  for (const m of next) {
+    const previous = members.find(member => member.uid === m.uid)!;
+    if (previous.role !== m.role || previous.team !== m.team) updates[`rooms/${roomId}/members/${m.uid}`] = m;
+  }
   await update(ref(db()), updates);
 }
 
@@ -334,6 +367,7 @@ export async function captainDeal(roomId: string, uid: string): Promise<void> {
   const members = Object.values(((await get(ref(db(), `rooms/${roomId}/members`))).val() as Record<string, Member>) ?? {});
   const redCap = members.find((m) => m.team === "red" && m.role === "captain")!;
   const blueCap = members.find((m) => m.team === "blue" && m.role === "captain")!;
+  if (!canStart(members)) throw new Error("NEED_ROLES");
   const pack = await loadPack(meta.packId);
   const cardIds = sampleCardIds(pack.cards.map((c) => c.id));
   const roles = rolesToMap(dealRoles(pending.startingTeam));
@@ -351,6 +385,7 @@ export async function captainDeal(roomId: string, uid: string): Promise<void> {
     turnId: `${matchId}-t1`,
     cardIds,
     startingTeam: pending.startingTeam,
+    duoTraining: members.length === 2 && members.every(m => m.role === "captain"),
     currentTeam: pending.startingTeam,
     phase: "clue",
     clueWord: null,
@@ -596,9 +631,9 @@ export function watchActions(roomId: string, cb: (ids: string[]) => void): Unsub
   );
 }
 
-export function watchDealRequest(roomId: string, cb: (pending: boolean) => void): Unsubscribe {
+export function watchDealRequest(roomId: string, cb: (initializer: string | null) => void): Unsubscribe {
   return onValue(ref(db(), `rooms/${roomId}/dealRequests/pending`), (snap) => {
-    cb(snap.exists());
+    cb(snap.exists() ? String(snap.val().initializer) : null);
   });
 }
 

@@ -16,7 +16,7 @@ export function getFirebase(): { app: FirebaseApp; auth: Auth; db: Database } | 
     ? {
         apiKey: "demo",
         authDomain: "localhost",
-        databaseURL: "http://127.0.0.1:9000?ns=demo-hidden-pictures",
+        databaseURL: `http://127.0.0.1:${import.meta.env.VITE_DATABASE_EMULATOR_PORT || "9000"}?ns=demo-hidden-pictures-default-rtdb`,
         projectId: "demo-hidden-pictures",
         appId: "demo",
       }
@@ -28,8 +28,8 @@ export function getFirebase(): { app: FirebaseApp; auth: Auth; db: Database } | 
   db = getDatabase(app);
 
   if (emulatorsEnabled() && !emulatorsConnected) {
-    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
-    connectDatabaseEmulator(db, "127.0.0.1", 9000);
+    connectAuthEmulator(auth, `http://127.0.0.1:${import.meta.env.VITE_AUTH_EMULATOR_PORT || "9099"}`, { disableWarnings: true });
+    connectDatabaseEmulator(db, "127.0.0.1", Number(import.meta.env.VITE_DATABASE_EMULATOR_PORT || 9000));
     emulatorsConnected = true;
   }
 

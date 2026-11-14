@@ -1,0 +1,145 @@
+{
+  "date": "2026-11-14",
+  "timezone": "Asia/Tbilisi",
+  "branch": "codex/autonomous-qa",
+  "baseCommit": "6d5318d45994886731b0f24423534fa1229a3600",
+  "workingTreeChanges": true,
+  "backend": "Firebase Auth + Realtime Database (local emulators)",
+  "vitest": {
+    "passed": 41,
+    "unit": 20,
+    "assets": 1,
+    "rules": 20,
+    "failed": 0,
+    "skipped": 0
+  },
+  "playwright": {
+    "stats": {
+      "startTime": "2026-11-14T19:26:44.486Z",
+      "duration": 59274.04,
+      "expected": 9,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "tests": [
+      {
+        "title": "four-player game: captain privacy, turns, reconnect, agent victory, rematch and assassin",
+        "file": "multiplayer.spec.ts",
+        "line": 85,
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 16340
+          }
+        ]
+      },
+      {
+        "title": "SDK attacks cannot elevate roles, finish a match, hijack host or overwrite public state",
+        "file": "multiplayer.spec.ts",
+        "line": 158,
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 4636
+          }
+        ]
+      },
+      {
+        "title": "six players: simultaneous reveal is applied once and opponent requests are rejected",
+        "file": "multiplayer.spec.ts",
+        "line": 172,
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 7221
+          }
+        ]
+      },
+      {
+        "title": "duo training: opposing captain opens the assassin",
+        "file": "multiplayer.spec.ts",
+        "line": 197,
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 2859
+          }
+        ]
+      },
+      {
+        "title": "registration, profile, sign-out/sign-in and last-player room cleanup",
+        "file": "multiplayer.spec.ts",
+        "line": 216,
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 1291
+          }
+        ]
+      },
+      {
+        "title": "repeated disconnect/reconnect restores presence and gameplay",
+        "file": "multiplayer.spec.ts",
+        "line": 246,
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 5325
+          }
+        ]
+      },
+      {
+        "title": "lobby: a field player replaces their captain and the leaving host transfers ownership",
+        "file": "multiplayer.spec.ts",
+        "line": 266,
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 3643
+          }
+        ]
+      },
+      {
+        "title": "late outsider and anonymous client cannot join or read a running game",
+        "file": "multiplayer.spec.ts",
+        "line": 287,
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 5815
+          }
+        ]
+      },
+      {
+        "title": "concurrent lobby joins never exceed the twelve-player UI capacity",
+        "file": "multiplayer.spec.ts",
+        "line": 311,
+        "status": "expected",
+        "results": [
+          {
+            "status": "passed",
+            "durationMs": 10567
+          }
+        ]
+      }
+    ]
+  },
+  "checks": {
+    "npm ci": "PASS",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "diff --check": "PASS"
+  },
+  "productionTouched": false,
+  "published": false
+}

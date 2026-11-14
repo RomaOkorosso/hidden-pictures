@@ -4,32 +4,37 @@
 
 Стек: React + TypeScript + Vite, Firebase Authentication (email/password), Firebase Realtime Database, GitHub Pages.
 
-## Локально
+## Локально и автономный QA
 
-Нужен **Node.js 20+** (`package.json` → `engines.node`). Системный Node 18 ломает `firebase-tools` 15 (`ERR_REQUIRE_ESM` у `uuid`). Если `node -v` < 20:
-
-```bash
-# вариант A: бинарь проекта (если есть .tools/node)
-export PATH="$PWD/.tools/node/bin:$PATH"
-
-# вариант B: nvm
-nvm install 20 && nvm use 20
-```
-
-Эмуляторы Auth/RTDB (`npm run emulators`, `firebase emulators:exec`, `npm run test:rules`) требуют **JDK 21+** (`java -version`). CI ставит Temurin 21 через `actions/setup-java`.
+Нужны Node.js **24.12+ в поддерживаемой LTS-ветке** (проверено на 24.22.3, см. `.nvmrc`) и **JDK 21+** для эмуляторов. Системный Node 18 не подходит. При наличии локального бинаря QA: `export PATH="$PWD/.tools/node24-qa/bin:$PATH"`; глобальные настройки менять не требуется.
 
 ```bash
 npm ci
+npx playwright install chromium
+npm run typecheck
+npm run lint
+npm run build
+npm test             # unit + assets
+npm run test:rules   # сам поднимает и останавливает изолированные эмуляторы
+npm run test:e2e     # сам поднимает Auth + RTDB + Vite + отдельные браузерные сессии
+# либо все тесты одной командой:
+npm run qa
+```
+
+QA использует только loopback-порты 19000/19099/14400/14401/14402/4177 и demo-проект, игнорирует `.env.local` и отказывается подключаться к уже занятым сервисам. Подробности, трассы, восстановление и обновление: [docs/QA_RECOVERY.md](docs/QA_RECOVERY.md). Результаты и ограничения: [QA_REPORT.md](QA_REPORT.md), [QA_RELEASE_GATE.md](QA_RELEASE_GATE.md).
+
+Для обычной локальной разработки:
+
+```bash
 cp .env.example .env.local
-# для эмуляторов:
-echo 'VITE_USE_EMULATORS=1' >> .env.local
-npm run emulators   # в отдельном терминале
+# В .env.local включить VITE_USE_EMULATORS=1
+npm run emulators  # отдельный терминал, порты 9099/9000
 npm run dev
 ```
 
-Команды: `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:rules` (нужны эмуляторы + JDK 21), `npm run build`, `npm run deploy:rules`.
+Эмулятор приложения использует namespace `demo-hidden-pictures-default-rtdb`, куда Firebase CLI загружает Rules. `npm run rules:generate` обновляет `database.rules.json`; Rules-тесты не пропускаются молча, если эмулятор не запустился.
 
-`npm run deploy:rules` сам подхватит `.tools/node` при наличии, сгенерирует `database.rules.json` и задеплоит в Firebase project `hidden-pictures-11613`. Нужен интерактивный `firebase login` (токен/service account в репозиторий не кладём). Без CLI: Console → Realtime Database → Rules → вставить содержимое `database.rules.json` → Publish.
+`npm run deploy:rules` публикует правила в реальный проект и **не является QA-командой**. Во время автономной проверки не запускается; публикация требует отдельного разрешения владельца.
 
 ## Ассеты
 

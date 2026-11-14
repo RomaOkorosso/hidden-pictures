@@ -1,0 +1,16 @@
+  1) tests/e2e/multiplayer.spec.ts:301:1 › concurrent lobby joins never exceed the twelve-player UI capacity
+
+    Error: expect(received).toHaveLength(expected)
+
+    Expected length: 12
+    Received length: 13
+    Received array:  ["9xp0AcDFSUpsxClVYP5jJE7sML4T", "Aj9lZJD5lLyyq2EjVpD0q9ZOQMYs", "FCe22nji66GHDpgZetBXiHfXLDZ5", "MR5QbV0SmlqAxxendbH07xOpMvJd", "R7DtTffp0D5bvYTqPlzfdbiZ4uUZ", "SasaoUeVgM0pFM81Rg4rSzJNT8kA", "WLOhEM3bOKlKgg8vmCrKJNkhECcL", "cmvGMsgvgehYv2jqYFABcObwWJD7", "cs5iscwYEE28ci6zwagNSDuY5VLj", "lakW5DHKe39LIdwsM0kk07HQmO0z", …]
+
+      314 |     }));
+      315 |     const roomId = (await sdk(host, 'read', `roomCodes/${code}`)).roomId;
+    > 316 |     expect(Object.keys(await sdk(host, 'read', `rooms/${roomId}/members`))).toHaveLength(12);
+          |                                                                             ^
+      317 |     let rejected = 0;
+      318 |     for (const p of pages.slice(1)) if (await p.getByText('Комната заполнена.', { exact: true }).isVisible()) rejected++;
+      319 |     expect(rejected).toBe(1);
+        at /home/roma/Desktop/codenames-picture-online/tests/e2e/multiplayer.spec.ts:316:77

@@ -48,7 +48,7 @@ export function canStart(members: Member[]): boolean {
   if (members.length < 2 || members.length > 12) return false;
   if (members.some((m) => m.team == null || m.role == null)) return false;
   for (const team of ["red", "blue"] as const) {
-    if (!captainOf(members, team)) return false;
+    if (members.filter(m => m.team === team && m.role === "captain").length !== 1) return false;
     const size = teamSize(members, team);
     if (size < 1) return false;
     // Classic: 2+ on a side need a field player.

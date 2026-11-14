@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   bindPresence,
@@ -43,6 +43,7 @@ export function RoomPage() {
   const [meta, setMeta] = useState<RoomMeta | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [match, setMatch] = useState<PublicMatch | null>(null);
+  const latestMatchVersion = useRef<number | null>(null);
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [presence, setPresence] = useState<Record<string, { online: boolean; at: number }>>({});
   const [secret, setSecret] = useState<SecretKey | null>(null);
@@ -54,7 +55,7 @@ export function RoomPage() {
   const [zoom, setZoom] = useState<number | null>(null);
   const [clueWord, setClueWord] = useState("");
   const [clueCount, setClueCount] = useState(2);
-  const [pendingDeal, setPendingDeal] = useState(false);
+  const [pendingDeal, setPendingDeal] = useState<string | null>(null);
   const [keyOpen, setKeyOpen] = useState(false);
   const [keyView, setKeyView] = useState<CaptainKeyView | null>(null);
   const [keyLoading, setKeyLoading] = useState(false);
@@ -99,18 +100,25 @@ export function RoomPage() {
     const unsub = watchRoom(roomId, {
       onMeta: setMeta,
       onMembers: setMembers,
-      onPublic: setMatch,
+      onPublic: next => {
+        latestMatchVersion.current = next?.version ?? null;
+        setMatch(next);
+        setError((previous: unknown) => previous instanceof Error && previous.message === "AWAITING_REVEAL" ? null : previous);
+      },
       onEvents: setEvents,
       onPresence: setPresence,
     });
+    let disposed = false;
     let stopPresence: (() => void) | undefined;
     void bindPresence(roomId, user.uid).then((stop) => {
-      stopPresence = stop;
+      if (disposed) stop();
+      else stopPresence = stop;
     });
     const hostTimer = window.setInterval(() => {
       void transferHostIfStale(roomId, user.uid).catch(() => undefined);
     }, 30_000);
     return () => {
+      disposed = true;
       unsub();
       stopPresence?.();
       window.clearInterval(hostTimer);
@@ -297,7 +305,7 @@ export function RoomPage() {
           {pendingDeal ? (
             <div className="panel">
               <p>{t("waitingDeal")}</p>
-              {isCaptain ? (
+              {isCaptain && pendingDeal === user.uid ? (
                 <button type="button" className="btn primary" disabled={busy} onClick={() => void run(() => captainDeal(roomId, user.uid))}>{t("dealNow")}</button>
               ) : null}
             </div>
@@ -400,7 +408,7 @@ export function RoomPage() {
             onReveal={(position) => void run(async () => {
               const result = await guessCard(roomId, user.uid, position, match.version);
               setSelected(null);
-              if (result === "queued") {
+              if (result === "queued" && latestMatchVersion.current === match.version) {
                 // Guesser never reads secret; online captain applies from actions queue.
                 setError(new Error("AWAITING_REVEAL"));
                 window.setTimeout(() => {

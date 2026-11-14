@@ -1,29 +1,16 @@
-# Progress
+# Progress — QA 2026-11-14
 
-- [x] Handoff docs + 100 cards (`hidden-mvp`)
-- [x] IMPLEMENTATION_PLAN
-- [x] Domain model + unit tests
-- [x] RTDB rules generator (`database.rules.json`)
-- [x] Firebase adapter + RU/EN UI (auth, lobby, game, double-tap)
-- [x] Asset check, typecheck, lint, production build PASS
-- [x] CI/Pages workflows
-- [x] Join/create lobby fixes; duo training; empty `revealed` normalize
-- [x] Captain key viewer (modal, sticky button, private fetch, rematch-scoped rules)
-- [x] CI: JDK 21 for firebase-tools 15 emulators (`actions/setup-java`)
-- [ ] Rules tests locally (need JDK 21 + `npm run emulators` / CI `emulators:exec`)
-- [ ] E2E 4-browser contexts
-- [ ] Deploy updated RTDB rules to production (needs owner `firebase login`)
+Текущая работа: `codex/autonomous-qa`. Исходное дерево было чистым. `CODEX_QA_TASK.md` отсутствует (пользователь подтвердил); фактический backend — Firebase Auth/RTDB, Supabase в проекте нет.
 
-## Last commands
+- [x] Изолированный запуск demo-эмуляторов и Vite без `.env.local`.
+- [x] Отрицательные SDK-тесты подтвердили пять обходов исходных правил.
+- [x] Исправлены роль/ведущий/статус/публичное состояние и namespace эмулятора.
+- [x] Исправлена обработка `Permission denied` при открытии карты полем.
+- [x] Четыре независимых игрока: полная партия, реванш, победа по агентам и убийца.
+- [x] Шесть игроков: одновременные открытия; два игрока: тренировка.
+- [x] Исправлены reconnect presence и воспроизведённая гонка 13-го входа.
+- [x] Реальные браузерные скриншоты и отдельные трассы клиентов.
+- [x] CI запускает Rules и Playwright перед сборкой для публикации.
+- [x] Итоговые прогоны: 41 Vitest + 9 Playwright, typecheck/lint/build/npm ci PASS; см. QA_REPORT.md.
 
-- Fixed rules tests: RTDB returns `roles` as array for keys 0–19; coerce via `coerceRolesMap`.
-- Bumped `firebase-tools` to 15.x (drops broken `universal-analytics`/`uuid` ESM); `deploy:rules` uses Node ≥20 / `.tools/node`.
-- CI installs Temurin JDK 21 before `firebase emulators:exec` (tools 15 rejects Java &lt; 21).
-- Production rules deploy still needs `firebase login` on owner machine (no token in env/configstore).
-
-## Next (owner)
-
-1. `export PATH="$PWD/.tools/node/bin:$PATH"` (or `nvm use 20`), then `firebase login` and `npm run deploy:rules`.
-2. Or paste `database.rules.json` in Console → Realtime Database → Rules → Publish.
-3. Confirm CI green after JDK 21 fix; Pages deploy follows `main`.
-4. Smoke two captains → «Посмотреть ключ».
+Продакшен, реальные комнаты и пользовательские данные не проверялись и не изменялись. Push, merge, deploy и публикация правил не выполнялись. Выпуск — только после отдельного разрешения владельца и условий QA_RELEASE_GATE.md.

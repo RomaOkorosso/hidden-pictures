@@ -7,7 +7,8 @@ function normalizeBase(input: string | undefined): string {
   return withLeading.endsWith("/") ? withLeading : `${withLeading}/`;
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  envDir: mode === "qa" ? ".qa/empty-env" : undefined,
   base: normalizeBase(process.env.VITE_BASE_PATH),
   plugins: [react()],
-});
+}));

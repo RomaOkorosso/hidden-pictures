@@ -249,3 +249,13 @@ describe("lobby", () => {
     expect(otherTeam("red")).toBe("blue");
   });
 });
+
+describe('QA captain uniqueness', () => {
+  it('rejects a lobby with duplicate captains even when both teams have guessers', () => {
+    const members: Member[] = [
+      ['r1', 'red', 'captain'], ['r2', 'red', 'captain'], ['r3', 'red', 'guesser'],
+      ['b1', 'blue', 'captain'], ['b2', 'blue', 'guesser'],
+    ].map(([uid, team, role]) => ({ uid: uid!, displayName: uid!, team: team as Member['team'], role: role as Member['role'], joinedAt: 1, lastSeenAt: 1 }));
+    expect(canStart(members)).toBe(false);
+  });
+});

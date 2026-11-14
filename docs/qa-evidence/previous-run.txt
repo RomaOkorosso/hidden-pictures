@@ -1,0 +1,59 @@
+
+> hidden-pictures@1.0.0 qa
+> node scripts/run-qa.mjs all
+
+i  emulators: Starting emulators: auth, database
+i  emulators: Detected demo project ID "demo-hidden-pictures", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+i  database: Database Emulator logging to database-debug.log
+i  Running script: npx vitest run && npx playwright test
+
+ RUN  v5.1.0 /home/roma/Desktop/codenames-picture-online
+
+
+ Test Files  3 passed (3)
+      Tests  41 passed (41)
+   Start at  23:24:18
+   Duration  2.47s (tests 88%, import 9%, transform 2%, worker 1%)
+
+[WebServer] (node:1618961) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 1 worker
+
+(node:1618996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] 11:24:31 PM [vite] (client) [console.warn] [2026-11-14T19:24:31.226Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:24:31 PM [vite] (client) [console.warn] [2026-11-14T19:24:31.617Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:24:32 PM [vite] (client) [console.warn] [2026-11-14T19:24:32.380Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:24:32 PM [vite] (client) [console.warn] [2026-11-14T19:24:32.555Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:24:32 PM [vite] (client) [console.warn] [2026-11-14T19:24:32.720Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:24:32 PM [vite] (client) [console.warn] [2026-11-14T19:24:32.891Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:24:33 PM [vite] (client) [console.warn] [2026-11-14T19:24:33.056Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:24:33 PM [vite] (client) [console.warn] [2026-11-14T19:24:33.237Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:24:33 PM [vite] (client) [console.warn] [2026-11-14T19:24:33.422Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:24:34 PM [vite] (client) [console.warn] [2026-11-14T19:24:34.886Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+  ✓  1 tests/e2e/multiplayer.spec.ts:79:1 › four-player game: captain privacy, turns, reconnect, agent victory, rematch and assassin (13.3s)
+[WebServer] 11:24:40 PM [vite] (client) [console.warn] [2026-11-14T19:24:40.013Z]  @firebase/database: FIREBASE WARNING: update at /rooms/-P6QWCT9CVAmWHLIL2P1/members/449hYAE98fHQwOOpy2a77dhNVwMU failed: permission_denied
+[WebServer] 11:24:40 PM [vite] (client) [console.warn] [2026-11-14T19:24:40.029Z]  @firebase/database: FIREBASE WARNING: update at /rooms/-P6QWCT9CVAmWHLIL2P1/meta failed: permission_denied
+[WebServer] 11:24:40 PM [vite] (client) [console.warn] [2026-11-14T19:24:40.045Z]  @firebase/database: FIREBASE WARNING: update at /rooms/-P6QWCT9CVAmWHLIL2P1/meta failed: permission_denied
+[WebServer] 11:24:40 PM [vite] (client) [console.warn] [2026-11-14T19:24:40.061Z]  @firebase/database: FIREBASE WARNING: update at /rooms/-P6QWCT9CVAmWHLIL2P1/public failed: permission_denied
+  ✓  2 tests/e2e/multiplayer.spec.ts:152:1 › SDK attacks cannot elevate roles, finish a match, hijack host or overwrite public state (4.5s)
+[WebServer] 11:24:47 PM [vite] (client) [console.warn] [2026-11-14T19:24:47.034Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:24:47 PM [vite] (client) [console.warn] [2026-11-14T19:24:47.052Z]  @firebase/database: FIREBASE WARNING: set at /rooms/-P6QWDso3eMyB0sAS9fn/actions/reveal-mmwgsoprqc5rk-t1-qcqjy7nUjsz19UBSCatQ0Vre2YIC-1 failed: permission_denied
+[WebServer] 11:24:47 PM [vite] (client) [console.warn] [2026-11-14T19:24:47.144Z]  @firebase/database: FIREBASE WARNING: set at /rooms/-P6QWDso3eMyB0sAS9fn/actions/reveal-malicious failed: permission_denied
+  ✓  3 tests/e2e/multiplayer.spec.ts:166:1 › six players: simultaneous reveal is applied once and opponent requests are rejected (7.5s)
+  ✓  4 tests/e2e/multiplayer.spec.ts:191:1 › duo training: opposing captain opens the assassin (2.9s)
+  ✓  5 tests/e2e/multiplayer.spec.ts:210:1 › registration, profile, sign-out/sign-in and last-player room cleanup (1.4s)
+[WebServer] 11:24:56 PM [vite] (client) [console.warn] [2026-11-14T19:24:56.805Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+  ✓  6 tests/e2e/multiplayer.spec.ts:240:1 › repeated disconnect/reconnect restores presence and gameplay (5.0s)
+  ✓  7 tests/e2e/multiplayer.spec.ts:260:1 › lobby: a field player replaces their captain and the leaving host transfers ownership (3.9s)
+  ✓  8 tests/e2e/multiplayer.spec.ts:281:1 › late outsider and anonymous client cannot join or read a running game (7.6s)
+  ✓  9 tests/e2e/multiplayer.spec.ts:305:1 › concurrent lobby joins never exceed the twelve-player UI capacity (11.5s)
+
+  9 passed (59.3s)
+✔  Script exited successfully (code 0)
+i  emulators: Shutting down emulators.
+i  database: Stopping Database Emulator
+i  auth: Stopping Authentication Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

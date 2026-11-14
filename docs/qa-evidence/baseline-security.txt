@@ -1,0 +1,14 @@
+Captured before Rules hardening (synthetic emulator fixtures).
+     → Expected request to fail, but it succeeded.
+     → Expected request to fail, but it succeeded.
+     → Expected request to fail, but it succeeded.
+     → Expected request to fail, but it succeeded.
+     → Expected request to fail, but it succeeded.
+ FAIL  tests/rules/database.rules.test.ts > QA privilege escalation regressions > denies guesser self promotion
+ FAIL  tests/rules/database.rules.test.ts > QA privilege escalation regressions > denies stranger promotes an existing member
+ FAIL  tests/rules/database.rules.test.ts > QA privilege escalation regressions > denies guesser finishes match to read key
+ FAIL  tests/rules/database.rules.test.ts > QA privilege escalation regressions > denies stranger hijacks host
+ FAIL  tests/rules/database.rules.test.ts > QA privilege escalation regressions > denies guesser forges winner
+Error: Expected request to fail, but it succeeded.
+ Test Files  1 failed (1)
+      Tests  5 failed | 11 passed (16)

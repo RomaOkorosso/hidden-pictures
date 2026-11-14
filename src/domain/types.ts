@@ -24,6 +24,7 @@ export type PublicMatch = {
   turnId: string;
   cardIds: string[];
   startingTeam: Team;
+  duoTraining?: boolean;
   currentTeam: Team;
   phase: Phase;
   clueWord: string | null;

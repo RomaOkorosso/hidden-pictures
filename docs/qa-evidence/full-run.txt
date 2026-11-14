@@ -1,0 +1,62 @@
+
+> hidden-pictures@1.0.0 qa
+> node scripts/run-qa.mjs all
+
+i  emulators: Starting emulators: auth, database
+i  emulators: Detected demo project ID "demo-hidden-pictures", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+i  database: Database Emulator logging to database-debug.log
+i  Running script: npx vitest run && npx playwright test
+
+ RUN  v5.1.0 /home/roma/Desktop/codenames-picture-online
+
+
+ Test Files  3 passed (3)
+      Tests  41 passed (41)
+   Start at  23:26:41
+   Duration  2.50s (tests 90%, import 8%, transform 1%, worker 1%)
+
+[WebServer] (node:1621530) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 1 worker
+
+(node:1621564) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] 11:26:54 PM [vite] (client) [console.warn] [2026-11-14T19:26:54.877Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:26:55 PM [vite] (client) [console.warn] [2026-11-14T19:26:55.698Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:26:57 PM [vite] (client) [console.warn] [2026-11-14T19:26:57.025Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:26:57 PM [vite] (client) [console.warn] [2026-11-14T19:26:57.264Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:26:57 PM [vite] (client) [console.warn] [2026-11-14T19:26:57.509Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:26:57 PM [vite] (client) [console.warn] [2026-11-14T19:26:57.716Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:26:57 PM [vite] (client) [console.warn] [2026-11-14T19:26:57.965Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:26:58 PM [vite] (client) [console.warn] [2026-11-14T19:26:58.249Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:26:58 PM [vite] (client) [console.warn] [2026-11-14T19:26:58.495Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:27:00 PM [vite] (client) [console.warn] [2026-11-14T19:27:00.509Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+  ✓  1 tests/e2e/multiplayer.spec.ts:85:1 › four-player game: captain privacy, turns, reconnect, agent victory, rematch and assassin (16.3s)
+[WebServer] 11:27:05 PM [vite] (client) [console.warn] [2026-11-14T19:27:05.832Z]  @firebase/database: FIREBASE WARNING: update at /rooms/-P6QWl5_-HMpB33EiHos/members/jovYhMlmZnc0zZBF1zthHSsA6DI7 failed: permission_denied
+[WebServer] 11:27:05 PM [vite] (client) [console.warn] [2026-11-14T19:27:05.848Z]  @firebase/database: FIREBASE WARNING: update at /rooms/-P6QWl5_-HMpB33EiHos/meta failed: permission_denied
+[WebServer] 11:27:05 PM [vite] (client) [console.warn] [2026-11-14T19:27:05.861Z]  @firebase/database: FIREBASE WARNING: update at /rooms/-P6QWl5_-HMpB33EiHos/meta failed: permission_denied
+[WebServer] 11:27:05 PM [vite] (client) [console.warn] [2026-11-14T19:27:05.873Z]  @firebase/database: FIREBASE WARNING: update at /rooms/-P6QWl5_-HMpB33EiHos/public failed: permission_denied
+  ✓  2 tests/e2e/multiplayer.spec.ts:158:1 › SDK attacks cannot elevate roles, finish a match, hijack host or overwrite public state (4.6s)
+[WebServer] 11:27:12 PM [vite] (client) [console.warn] [2026-11-14T19:27:12.602Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+[WebServer] 11:27:12 PM [vite] (client) [console.warn] [2026-11-14T19:27:12.610Z]  @firebase/database: FIREBASE WARNING: set at /rooms/-P6QWmTVK4OhJpIoHUwX/actions/reveal-mmwgsru3rednu-t1-KBregqgwc7CHtF1ICtqzVLmyUzxC-4 failed: permission_denied
+[WebServer] 11:27:12 PM [vite] (client) [console.warn] [2026-11-14T19:27:12.616Z]  @firebase/database: FIREBASE WARNING: set at /rooms/-P6QWmTVK4OhJpIoHUwX/actions/reveal-mmwgsru3rednu-t1-pka4ISdOrv2yA4ZrUzZQNeMUYzwZ-4 failed: permission_denied
+[WebServer] 11:27:12 PM [vite] (client) [console.warn] [2026-11-14T19:27:12.626Z]  @firebase/database: FIREBASE WARNING: set at /rooms/-P6QWmTVK4OhJpIoHUwX/actions/reveal-mmwgsru3rednu-t1-KBregqgwc7CHtF1ICtqzVLmyUzxC-4 failed: permission_denied
+[WebServer] 11:27:12 PM [vite] (client) [console.warn] [2026-11-14T19:27:12.628Z]  @firebase/database: FIREBASE WARNING: set at /rooms/-P6QWmTVK4OhJpIoHUwX/actions/reveal-mmwgsru3rednu-t1-KBregqgwc7CHtF1ICtqzVLmyUzxC-4 failed: permission_denied
+[WebServer] 11:27:12 PM [vite] (client) [console.warn] [2026-11-14T19:27:12.718Z]  @firebase/database: FIREBASE WARNING: set at /rooms/-P6QWmTVK4OhJpIoHUwX/actions/reveal-malicious failed: permission_denied
+  ✓  3 tests/e2e/multiplayer.spec.ts:172:1 › six players: simultaneous reveal is applied once and opponent requests are rejected (7.2s)
+  ✓  4 tests/e2e/multiplayer.spec.ts:197:1 › duo training: opposing captain opens the assassin (2.9s)
+  ✓  5 tests/e2e/multiplayer.spec.ts:216:1 › registration, profile, sign-out/sign-in and last-player room cleanup (1.3s)
+[WebServer] 11:27:22 PM [vite] (client) [console.warn] [2026-11-14T19:27:22.490Z]  @firebase/database: FIREBASE WARNING: update at / failed: permission_denied
+  ✓  6 tests/e2e/multiplayer.spec.ts:246:1 › repeated disconnect/reconnect restores presence and gameplay (5.3s)
+  ✓  7 tests/e2e/multiplayer.spec.ts:266:1 › lobby: a field player replaces their captain and the leaving host transfers ownership (3.6s)
+  ✓  8 tests/e2e/multiplayer.spec.ts:287:1 › late outsider and anonymous client cannot join or read a running game (5.8s)
+  ✓  9 tests/e2e/multiplayer.spec.ts:311:1 › concurrent lobby joins never exceed the twelve-player UI capacity (10.6s)
+
+  9 passed (59.3s)
+✔  Script exited successfully (code 0)
+i  emulators: Shutting down emulators.
+i  database: Stopping Database Emulator
+i  auth: Stopping Authentication Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

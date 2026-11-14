@@ -1,0 +1,15 @@
+{
+  "package.json": "851832ee76e11bdef6fcf5d979feec94c67d98d20b0b03a3f5a1305eae7375b3",
+  "package-lock.json": "6bb07e1de05f4bc0c577ad338347ab9b0fdad8a49261160341e6314091aa60a5",
+  "database.rules.json": "6b748b56396f44907a85e767060c2cc441960135e73797a965498c5c39b1dd76",
+  "scripts/generate-database-rules.ts": "edec8b1995ebba17a916782e7b59cc1ae61b69a151a9cb4205509e5b7133a62f",
+  "scripts/run-qa.mjs": "45eaaa740a1123479fcfafeed325686e224f23d9bcf95b36e895a6421473c4cb",
+  "playwright.config.ts": "b1762517a9255be86b74744ad679ecbaa41abaddadff6eb6e9ce29dd29228d0f",
+  "src/adapters/roomApi.ts": "90da9c030debf7f530b293f3a662c48c5fbbcf9c8071d5b4df96fea323347526",
+  "src/firebase/app.ts": "ab1b1697ff1ffcb018300bea31477090646da5c6212f34f2ab316b388de12f1d",
+  "src/ui/pages/RoomPage.tsx": "30563a62600d2a1ff460daab1e6d40253bdb71c8c7457630003af2e2e176e5e4",
+  "tests/e2e/multiplayer.spec.ts": "cb0f91b71a96732409ce71b7dc36c16cfc32883c208e848016a9b6c4667127b2",
+  "tests/e2e/browser-client.ts": "bdaa18a4e302f004e7d808dc68a91a45c71bf7c5a569aa0285f5733f8adf1843",
+  "tests/rules/database.rules.test.ts": "47bb5df77770d6e4db3a7ce95540631884d76cbc2ed7443d8ad5a8187c1ddd2e",
+  "tests/unit/key.test.ts": "b20fd28648c943746159957f19bc6cf6e409faf06825539fc8447d60560567e1"
+}
